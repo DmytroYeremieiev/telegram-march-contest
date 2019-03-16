@@ -1,4 +1,8 @@
 #main-canvas {
   width: 100%;
   height: 600px;
+
+}
+svg path {
+  transition: 0.1s linear;
 }

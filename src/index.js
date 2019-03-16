@@ -8,16 +8,9 @@ console.log("Hello!");
 
 
   let config = {
-    gridSize: 20,
-    paddings: 20,
-    width: 600,
-    height: 300,
-    xAxisValueMapper: (y)=> y / (1000*60*60*24),
-    xAxisLabelMapper: (y)=> (new Date(y)).toDateString(),
-    yAxisValueMapper: (x)=> e.joinedCount,
-    yAxisLabelMapper: (x)=> e.joinedCount
+    // gridSize: 20
   } 
-  chart.create(document.getElementById('main-canvas'), config).renderData(chart_data[0]);
+  chart.create(document.getElementById('main-canvas'), config, chart_data[0]).render();
 })()
 
 

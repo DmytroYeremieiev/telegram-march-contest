@@ -1,4 +1,5 @@
 
+let pipe = (...fns) => x => fns.reduce((v, f) => f(v), x);
 
 function createLine(canvas, x1, x2, y1, y2) {
   let line = document.createElement('line');
@@ -10,64 +11,86 @@ function createLine(canvas, x1, x2, y1, y2) {
   line.appendChild(line);
 }
 
-function cookData(chart, data) {
-  chart._data = [];
-  for (let index = 0; index < data.length; index++) {
-    const t = {};
-    t.x = chart.config.xAxisValueMapper(data[index]);
-    t.y = chart.config.yAxisValueMapper(data[index]);
-    chart._data.push(t);
+function renderPath(chart, line) {
+  let path = document.createElementNS("http://www.w3.org/2000/svg", 'path'),
+      d = '',
+      x = 0, y = null;
+  for (let j = 0; j < line.data.length; j++) {
+    const prefix = j === 0 ? 'M' : 'L';
+    y = chart._.height - line.data[j] + chart._.minY;
+    d += prefix + x +','+ y;
+    if (j === line.data.length - 1) {
+      // debugger
+      console.log('j, line.data[j], x, y', j, line.data[j], x, y)
+    }
+    x += chart._.gridSize;
+  }
+  path.setAttribute('d', d);
+  path.setAttribute('stroke', line.color);
+  path.setAttribute('name', line.name);
+  path.setAttribute('fill', 'none');
+  chart.svg.appendChild(path);
+}
+
+function render(chart) {
+  console.log('chart, data', chart);
+  Object.keys(chart._.lines).forEach((hash)=>renderPath(chart, chart._.lines[hash]))
+}
+
+function prepareData(rawData) {
+  const lines = {}, x = {};
+  rawData.columns.forEach(column => {
+    const hash = column.shift();
+    if (rawData.types[hash] !== 'x'){
+      lines[hash] = {};
+      lines[hash].name = rawData.names[hash];
+      lines[hash].color = rawData.colors[hash];
+      lines[hash].data = column;
+      lines[hash].min = column;
+    }else{
+      x.data = column;
+    }
+  });
+  return {x, lines}
+}
+
+function getElementInnerSize(element) {
+  const props = window.getComputedStyle(element);
+  return {
+    width: element.clientWidth - parseFloat(props.paddingLeft) - parseFloat(props.paddingRight),
+    height: element.clientHeight - parseFloat(props.paddingTop) -  parseFloat(props.paddingBottom)
   }
 }
 
-function renderPath(chart, data) {
-  for (let i = 0; i < data.columns.length; i++) {
-    let path = document.createElementNS("http://www.w3.org/2000/svg", 'path');
-    let column = data.columns[i],
-        columnHashName = column[0],
-        d = '',
-        x = 0;
-    if(data.types[columnHashName] === 'x'){
-      continue
-    }
-    for (let j = 1; j < column.length; j++) {
-      const prefix = j === 1 ? 'M' : 'L';
-      d += prefix + x +','+ (chart.config.height - column[j]);
-      x += chart.config.gridSize;
-    }
-    path.setAttribute('d', d);
-    path.setAttribute('stroke', data.colors[columnHashName]);
-    path.setAttribute('name', data.names[columnHashName]);
-    path.setAttribute('fill', 'none');
-    chart.svg.appendChild(path);
-  }
+function getDimentions(_) {
+  const {x, lines, placement} = _;
+  let parentElementWidth = getElementInnerSize(placement).width,
+      gridSize = Math.ceil(parentElementWidth / (x.data.length - 1)),
+      width = gridSize * (x.data.length - 1),
+      height = null;
+  console.log('parentElementWidth, gridSize, width', parentElementWidth, gridSize, width)
+  let totalY = Object.keys(lines).reduce((seed, next)=>{
+    return seed.concat(lines[next].data)
+  }, []);
+  let minY = Math.min.apply(null, totalY), maxY = Math.max.apply(null, totalY);
+  height = maxY - minY;
+  return {width, height, minY, maxY, gridSize}
 }
 
-function renderData(chart, data) {
-  console.log('chart, data', chart, data);
-  // cookData(chart, data)
-  renderPath(chart, data);
-}
-
-function create(placement, config){
+function create(placement, config, data){
   const chart = {};
-        // canvas = document.createElement('svg');
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute('style', 'border: 1px solid black');
   svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
-  svg.setAttribute('width', '600');
-  svg.setAttribute('height', '300');
-  svg.setAttribute('viewBox', `0 0 ${config.width} ${config.height}`);
-  
-  // canvas.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
-  // canvas.setAttribute('width', config.width+'px');
-  // canvas.setAttribute('height', config.height+'px');
-  placement.append(svg);
-
   chart.svg = svg;
   chart.config = config;
+  chart.data = data;
+  chart._ = Object.assign({placement: placement}, prepareData(data));
+  chart._ = Object.assign(chart._, getDimentions(chart._));
+  svg.setAttribute('viewBox', `0 0 ${chart._.width} ${chart._.height}`);
+  placement.append(svg);
   return {
-    renderData: (data)=> renderData(chart, data)
+    render: _=> render(chart)
   }
 }
 

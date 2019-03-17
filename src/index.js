@@ -1,6 +1,6 @@
 import chart from './chart.js';
 
-console.log("Hello!");
+// console.log("Hello!");
 
 (async function() {
   let res = await fetch("./chart_data.json");

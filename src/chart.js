@@ -20,9 +20,9 @@ function renderLine(canvas, line, viewBoxHeight, minValue, stepSize) {
     const prefix = j === 0 ? 'M' : 'L';
     y = viewBoxHeight - line.data[j] + minValue;
     d += prefix + x +','+ y;
-    if (j === line.data.length - 1) {
-      console.log('j, line.data[j], x, y', j, line.data[j], x, y)
-    }
+    // if (j === line.data.length - 1) {
+    //   console.log('j, line.data[j], x, y', j, line.data[j], x, y)
+    // }
     x += stepSize;
   }
   path.setAttribute('d', d);

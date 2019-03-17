@@ -35,7 +35,7 @@ function renderLine(canvas, line, viewBoxHeight, minValue, stepSize) {
 function render(_) {
   console.log('_ :', _);
   Object.keys(_.lines).forEach((hash)=>renderLine(_.canvas, _.lines[hash], _.viewBoxHeight, _.minValue , _.x.stepSize));
-  createSelector(_.canvas, _.viewBoxWidth, _.viewBoxHeight, _.viewBoxWidth / 5);
+  createSelector(_.canvas, 0, 0, _.viewBoxWidth, _.viewBoxHeight);
 }
 
 function prepareData(_) {

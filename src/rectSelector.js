@@ -8,23 +8,31 @@ function createRect(x, y, width, height, styles) {
   return rect;
 }
 
-export function create(canvas, width, height, size) {
-  let group = document.createElementNS("http://www.w3.org/2000/svg", 'g'), 
+export function create(canvas,x, y, width, height) {
+  let svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg'), 
       sidesWidth = 20,
       centerRect, leftRect, rightRect;
 
-  centerRect = createRect(width - size, 0, size, height, ['opacity:','0.2;'])
-  group.appendChild(centerRect);
+  svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
+  svg.setAttribute('preserveAspectRatio', 'none');
+  
+  svg.setAttribute('x', x);
+  svg.setAttribute('y', y);
+  svg.setAttribute('width', width);
+  svg.setAttribute('height', height);
+
+  // centerRect = createRect(width - size, 0, size, height, ['opacity:','0.2;'])
+  // svg.appendChild(centerRect);
  
-  leftRect = createRect(width - size, 0, sidesWidth, height, ['opacity:','0.2;'])
-  group.appendChild(leftRect);
+  leftRect = createRect(0, 0, sidesWidth, height, ['opacity:','0.2;'])
+  svg.appendChild(leftRect);
 
   rightRect = createRect(width - sidesWidth, 0, sidesWidth, height, ['opacity:','0.2;'])
-  group.appendChild(rightRect);
+  svg.appendChild(rightRect);
 
-  canvas.appendChild(group);
+  canvas.appendChild(svg);
   
   return {
-    rect: group
+    element: svg
   }
 }

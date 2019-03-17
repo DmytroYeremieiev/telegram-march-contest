@@ -11,16 +11,15 @@ function createLine(canvas, x1, x2, y1, y2) {
   line.appendChild(line);
 }
 
-function renderLine(canvas, line, viewBoxHeight, stepSize) {
+function renderLine(canvas, line, viewBoxHeight, minValue, stepSize) {
   let path = document.createElementNS("http://www.w3.org/2000/svg", 'path'),
       d = '',
       x = 0, y = null;
   for (let j = 0; j < line.data.length; j++) {
     const prefix = j === 0 ? 'M' : 'L';
-    y = viewBoxHeight - line.data[j] + line.min;
+    y = viewBoxHeight - line.data[j] + minValue;
     d += prefix + x +','+ y;
     if (j === line.data.length - 1) {
-      // debugger
       console.log('j, line.data[j], x, y', j, line.data[j], x, y)
     }
     x += stepSize;
@@ -34,11 +33,12 @@ function renderLine(canvas, line, viewBoxHeight, stepSize) {
 
 function render(_) {
   console.log('_ :', _);
-  Object.keys(_.lines).forEach((hash)=>renderLine(_.canvas, _.lines[hash], _.viewBoxHeight, _.x.stepSize));
+  Object.keys(_.lines).forEach((hash)=>renderLine(_.canvas, _.lines[hash], _.viewBoxHeight, _.minValue , _.x.stepSize));
 }
 
 function prepareData(_) {
   const lines = {}, x = {};
+  let totalData = [];
   _.data.columns.forEach(column => {
     const hash = column.shift();
     if (_.data.types[hash] !== 'x'){
@@ -46,33 +46,32 @@ function prepareData(_) {
       lines[hash].name = _.data.names[hash];
       lines[hash].color = _.data.colors[hash];
       lines[hash].data = column;
+      totalData = totalData.concat(column);
       lines[hash].min = Math.min.apply(null, column);
       lines[hash].max = Math.max.apply(null, column);
     }else{
-      x.data = column;
-      x.stepSize = Math.ceil(_.canvasWidth / (x.data.length - 1));
+      x.steps = column;
+      x.stepSize = Math.ceil(_.canvasWidth / (x.steps.length - 1));
     }
   });
   _.lines = lines;
   _.x = x;
+  _.minValue = Math.min.apply(null, totalData);
+  _.maxValue = Math.max.apply(null, totalData);
   return _
 }
 
-function getElementInnerSize(_) {
+function setElementInnerSize(_) {
   const props = window.getComputedStyle(_.placement);
   _.canvasWidth = _.placement.clientWidth - parseFloat(props.paddingLeft) - parseFloat(props.paddingRight);
   _.canvasHeight = _.placement.clientHeight - parseFloat(props.paddingTop) -  parseFloat(props.paddingBottom);
   return _
 }
 
-function getDimentions(_) {
-  const {x, lines} = _;
-  _.viewBoxWidth = x.stepSize * (x.data.length - 1);
-  let totalY = Object.keys(lines).reduce((seed, next)=>{
-    return seed.concat(lines[next].data)
-  }, []);
-  let minY = Math.min.apply(null, totalY), maxY = Math.max.apply(null, totalY);
-  _.viewBoxHeight = maxY - minY;
+function setDimentions(_) {
+  const {x} = _;
+  _.viewBoxWidth = x.stepSize * (x.steps.length - 1);
+  _.viewBoxHeight = _.maxValue - _.minValue;
   return _
 }
 
@@ -83,9 +82,9 @@ function create(placement, config, data){
   svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
   chart.config = config;
   chart._ = pipe(
-    getElementInnerSize,
+    setElementInnerSize,
     prepareData, 
-    getDimentions,
+    setDimentions,
   )({placement: placement, canvas: svg, data: data});
   svg.setAttribute('viewBox', `0 0 ${chart._.viewBoxWidth} ${chart._.viewBoxHeight}`);
   placement.append(svg);

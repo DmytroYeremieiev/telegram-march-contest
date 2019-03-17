@@ -1,3 +1,4 @@
+import {create as createSelector} from "./rectSelector.js"
 
 let pipe = (...fns) => x => fns.reduce((v, f) => f(v), x);
 
@@ -34,6 +35,7 @@ function renderLine(canvas, line, viewBoxHeight, minValue, stepSize) {
 function render(_) {
   console.log('_ :', _);
   Object.keys(_.lines).forEach((hash)=>renderLine(_.canvas, _.lines[hash], _.viewBoxHeight, _.minValue , _.x.stepSize));
+  createSelector(_.canvas, _.viewBoxWidth, _.viewBoxHeight, _.viewBoxWidth / 5);
 }
 
 function prepareData(_) {

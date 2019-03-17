@@ -8,29 +8,29 @@ function createRect(x, y, width, height, styles) {
   return rect;
 }
 
-export function create(canvas,x, y, width, height) {
+export function create(placement, x, y, width, height, relativePosition, relativeSize, fixedBorderSize) {
   let svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg'), 
-      sidesWidth = 20,
       centerRect, leftRect, rightRect;
 
   svg.setAttribute('viewBox', `${x} ${y} ${width} ${height}`);
   svg.setAttribute('preserveAspectRatio', 'none');
   
-  svg.setAttribute('x', x);
-  svg.setAttribute('y', y);
-  svg.setAttribute('width', width);
-  svg.setAttribute('height', height);
 
-  // centerRect = createRect(width - size, 0, size, height, ['opacity:','0.2;'])
-  // svg.appendChild(centerRect);
- 
-  leftRect = createRect(0, 0, sidesWidth, height, ['opacity:','0.2;'])
+  svg.setAttribute('x', `${100*relativePosition}%`);
+  svg.setAttribute('width', `${100*relativeSize}%`);
+  svg.setAttribute('style', ['overflow:', 'visible;'].join(''));
+
+  centerRect = createRect(0, 0, '100%', height, ['opacity:','0.2;'])
+  svg.appendChild(centerRect);
+  
+  let relativeBorderSize = Number.parseFloat(fixedBorderSize / width / relativeSize * 100).toPrecision(3);
+  leftRect = createRect(0, 0, `${relativeBorderSize}%`, height, ['opacity:','0.2;'])
   svg.appendChild(leftRect);
 
-  rightRect = createRect(width - sidesWidth, 0, sidesWidth, height, ['opacity:','0.2;'])
+  rightRect = createRect(`${100 - relativeBorderSize}%`, 0, `${relativeBorderSize}%`, height, ['opacity:','0.2;'])
   svg.appendChild(rightRect);
 
-  canvas.appendChild(svg);
+  placement.appendChild(svg);
   
   return {
     element: svg

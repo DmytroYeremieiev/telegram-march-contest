@@ -11,70 +11,69 @@ function createLine(canvas, x1, x2, y1, y2) {
   line.appendChild(line);
 }
 
-function renderPath(chart, line) {
+function renderLine(canvas, line, viewBoxHeight, stepSize) {
   let path = document.createElementNS("http://www.w3.org/2000/svg", 'path'),
       d = '',
       x = 0, y = null;
   for (let j = 0; j < line.data.length; j++) {
     const prefix = j === 0 ? 'M' : 'L';
-    y = chart._.height - line.data[j] + chart._.minY;
+    y = viewBoxHeight - line.data[j] + line.min;
     d += prefix + x +','+ y;
     if (j === line.data.length - 1) {
       // debugger
       console.log('j, line.data[j], x, y', j, line.data[j], x, y)
     }
-    x += chart._.gridSize;
+    x += stepSize;
   }
   path.setAttribute('d', d);
   path.setAttribute('stroke', line.color);
   path.setAttribute('name', line.name);
   path.setAttribute('fill', 'none');
-  chart.svg.appendChild(path);
+  canvas.appendChild(path);
 }
 
-function render(chart) {
-  console.log('chart, data', chart);
-  Object.keys(chart._.lines).forEach((hash)=>renderPath(chart, chart._.lines[hash]))
+function render(_) {
+  console.log('_ :', _);
+  Object.keys(_.lines).forEach((hash)=>renderLine(_.canvas, _.lines[hash], _.viewBoxHeight, _.x.stepSize));
 }
 
-function prepareData(rawData) {
+function prepareData(_) {
   const lines = {}, x = {};
-  rawData.columns.forEach(column => {
+  _.data.columns.forEach(column => {
     const hash = column.shift();
-    if (rawData.types[hash] !== 'x'){
+    if (_.data.types[hash] !== 'x'){
       lines[hash] = {};
-      lines[hash].name = rawData.names[hash];
-      lines[hash].color = rawData.colors[hash];
+      lines[hash].name = _.data.names[hash];
+      lines[hash].color = _.data.colors[hash];
       lines[hash].data = column;
-      lines[hash].min = column;
+      lines[hash].min = Math.min.apply(null, column);
+      lines[hash].max = Math.max.apply(null, column);
     }else{
       x.data = column;
+      x.stepSize = Math.ceil(_.canvasWidth / (x.data.length - 1));
     }
   });
-  return {x, lines}
+  _.lines = lines;
+  _.x = x;
+  return _
 }
 
-function getElementInnerSize(element) {
-  const props = window.getComputedStyle(element);
-  return {
-    width: element.clientWidth - parseFloat(props.paddingLeft) - parseFloat(props.paddingRight),
-    height: element.clientHeight - parseFloat(props.paddingTop) -  parseFloat(props.paddingBottom)
-  }
+function getElementInnerSize(_) {
+  const props = window.getComputedStyle(_.placement);
+  _.canvasWidth = _.placement.clientWidth - parseFloat(props.paddingLeft) - parseFloat(props.paddingRight);
+  _.canvasHeight = _.placement.clientHeight - parseFloat(props.paddingTop) -  parseFloat(props.paddingBottom);
+  return _
 }
 
 function getDimentions(_) {
-  const {x, lines, placement} = _;
-  let parentElementWidth = getElementInnerSize(placement).width,
-      gridSize = Math.ceil(parentElementWidth / (x.data.length - 1)),
-      width = gridSize * (x.data.length - 1),
-      height = null;
-  console.log('parentElementWidth, gridSize, width', parentElementWidth, gridSize, width)
+  const {x, lines} = _;
+  _.viewBoxWidth = x.stepSize * (x.data.length - 1);
   let totalY = Object.keys(lines).reduce((seed, next)=>{
     return seed.concat(lines[next].data)
   }, []);
   let minY = Math.min.apply(null, totalY), maxY = Math.max.apply(null, totalY);
-  height = maxY - minY;
-  return {width, height, minY, maxY, gridSize}
+  _.viewBoxHeight = maxY - minY;
+  return _
 }
 
 function create(placement, config, data){
@@ -82,15 +81,16 @@ function create(placement, config, data){
   const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
   svg.setAttribute('style', 'border: 1px solid black');
   svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
-  chart.svg = svg;
   chart.config = config;
-  chart.data = data;
-  chart._ = Object.assign({placement: placement}, prepareData(data));
-  chart._ = Object.assign(chart._, getDimentions(chart._));
-  svg.setAttribute('viewBox', `0 0 ${chart._.width} ${chart._.height}`);
+  chart._ = pipe(
+    getElementInnerSize,
+    prepareData, 
+    getDimentions,
+  )({placement: placement, canvas: svg, data: data});
+  svg.setAttribute('viewBox', `0 0 ${chart._.viewBoxWidth} ${chart._.viewBoxHeight}`);
   placement.append(svg);
   return {
-    render: _=> render(chart)
+    render: _=> render(chart._)
   }
 }
 

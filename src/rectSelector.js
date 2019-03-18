@@ -43,6 +43,22 @@ function endDrag(evt, draggable) {
   draggable.selected = false;
 }
 
+function makeExtendable(elem, relativeParent, minX, maxX) {
+  let draggable = {
+    relativeParent: relativeParent,
+    elem: elem.parentNode,
+    selected: false,
+    width: parseFloat(elem.parentNode.getAttributeNS(null, "width")),
+    minX: minX,
+    maxX: maxX
+  };
+
+  elem.addEventListener('mousedown', evt=> startDrag(evt, draggable));
+  elem.addEventListener('mousemove', evt=> drag(evt, draggable));
+  elem.addEventListener('mouseup', evt=> endDrag(evt, draggable));
+  elem.addEventListener('mouseleave', evt=> endDrag(evt, draggable));
+}
+
 function makeDraggable(elem, relativeParent, minX, maxX) {
   let draggable = {
     relativeParent: relativeParent,
@@ -78,6 +94,8 @@ export function create(placement, x, y, width, height, relativePosition, relativ
   let relativeBorderSize = Number.parseFloat(fixedBorderSize / width / relativeSize * 100).toPrecision(3);
   leftRect = createRect('leftRect', 0, 0, `${relativeBorderSize}%`, height, ['opacity:','0.2;'])
   svg.appendChild(leftRect);
+  makeExtendable(leftRect, placement, 0, width);
+
 
   rightRect = createRect('rightRect', `${100 - relativeBorderSize}%`, 0, `${relativeBorderSize}%`, height, ['opacity:','0.2;'])
   svg.appendChild(rightRect);

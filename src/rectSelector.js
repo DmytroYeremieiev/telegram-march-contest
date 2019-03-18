@@ -27,8 +27,8 @@ function drag(evt, draggable) {
     return;
   }
   let coord = getMousePosition(evt, draggable.relativeParent);
-  let newPosition = coord.x - draggable.offset.x;
-  draggable.onPositionChange(newPosition);
+  draggable.newPosition = coord.x - draggable.offset.x;
+  draggable.onPositionChange(draggable);
 }
 function endDrag(evt, draggable) {
   console.log('endDrag: ', draggable)
@@ -49,43 +49,45 @@ function makeDraggable(elem, relativeParent, onPositionChange) {
   elem.addEventListener('mouseleave', evt=> endDrag(evt, draggable));
 }
 
-export function create(placement, x, y, width, height, relativePosition, relativeSize, fixedBorderSize) {
-  let svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg'), 
-      selectorWidth = width*relativeSize,
+export function create(placement, relativePosition, relativeSize, fixedBorderSize) {
+  let selector = document.createElementNS("http://www.w3.org/2000/svg", 'svg'), 
+      bBox = placement.getBBox(),
+      x = bBox.width*relativePosition,
+      width = bBox.width*relativeSize,
       centerRect, leftRect, rightRect;
   
-  svg.setAttributeNS(null, 'viewBox', `${x} ${y} ${width} ${height}`);
-  svg.setAttributeNS(null, 'preserveAspectRatio', 'none');
-  
+  selector.setAttributeNS(null, 'viewBox', `${bBox.x} ${bBox.y} ${bBox.width} ${bBox.height}`);
+  selector.setAttributeNS(null, 'preserveAspectRatio', 'none');
 
-  svg.setAttributeNS(null, 'x', `${width*relativePosition}`);
-  svg.setAttributeNS(null, 'width', `${selectorWidth}`);
-  svg.setAttributeNS(null, 'style', ['overflow:', 'visible;'].join(''));
+  selector.setAttributeNS(null, 'x', x);
+  selector.setAttributeNS(null, 'width', width);
+  selector.setAttributeNS(null, 'style', ['overflow:', 'visible;'].join(''));
 
-  centerRect = createRect('centerRect', 0, 0, '100%', height, ['opacity:','0.2;']);
-  svg.appendChild(centerRect);
-  makeDraggable(centerRect, placement, (newPosition)=>{
+  centerRect = createRect('centerRect', 0, 0, '100%', bBox.height, ['opacity:','0.2;']);
+  selector.appendChild(centerRect);
+  makeDraggable(centerRect, placement, (draggable)=>{
+    let {newPosition, previousPosition} = draggable;
     if ( newPosition < 0 ){
       newPosition = 0;
     }
-    if ( (newPosition + selectorWidth) > width ){
-      newPosition = width - selectorWidth;
+    if ( (newPosition + width) > bBox.width ){
+      newPosition = bBox.width - width;
     }
     newPosition = parseFloat(newPosition).toPrecision(4);
-    // console.log('centerRect:drag: coord.x - draggable.offset.x', coord.x, '-',draggable.offset.x,' = ', newPosition)
-    svg.setAttributeNS(null, "x", newPosition);
+    console.log('newPosition, previousPosition', newPosition, previousPosition)
+    selector.setAttributeNS(null, "x", newPosition);
   });
 
-  let relativeBorderSize = Number.parseFloat(fixedBorderSize / width / relativeSize * 100).toPrecision(3);
-  leftRect = createRect('leftRect', 0, 0, `${relativeBorderSize}%`, height, ['opacity:','0.2;'])
-  svg.appendChild(leftRect);
+  let relativeBorderSize = Number.parseFloat(fixedBorderSize / bBox.width / relativeSize * 100).toPrecision(3);
+  leftRect = createRect('leftRect', 0, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
+  selector.appendChild(leftRect);
 
-  rightRect = createRect('rightRect', `${100 - relativeBorderSize}%`, 0, `${relativeBorderSize}%`, height, ['opacity:','0.2;'])
-  svg.appendChild(rightRect);
+  rightRect = createRect('rightRect', `${100 - relativeBorderSize}%`, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
+  selector.appendChild(rightRect);
 
-  placement.appendChild(svg);
+  placement.appendChild(selector);
   
   return {
-    element: svg
+    element: selector
   }
 }

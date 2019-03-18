@@ -35,7 +35,7 @@ function endDrag(evt, draggable) {
   draggable.selected = false;
 }
 
-function makeDraggable(elem, relativeParent, onPositionChange) {
+function makeDraggable(svg, relativeParent, onPositionChange) {
   let draggable = {
     relativeParent: relativeParent,
     elem: elem.parentNode,
@@ -43,13 +43,13 @@ function makeDraggable(elem, relativeParent, onPositionChange) {
     onPositionChange
   };
 
-  elem.addEventListener('mousedown', evt=> startDrag(evt, draggable));
-  elem.addEventListener('mousemove', evt=> drag(evt, draggable));
-  elem.addEventListener('mouseup', evt=> endDrag(evt, draggable));
-  elem.addEventListener('mouseleave', evt=> endDrag(evt, draggable));
+  svg.addEventListener('mousedown', evt=> startDrag(evt, draggable));
+  svg.addEventListener('mousemove', evt=> drag(evt, draggable));
+  svg.addEventListener('mouseup', evt=> endDrag(evt, draggable));
+  svg.addEventListener('mouseleave', evt=> endDrag(evt, draggable));
 }
 
-export function create(placement, relativePosition, relativeSize, fixedBorderSize) {
+export function add(placement, relativePosition, relativeSize, fixedBorderSize) {
   let selector = document.createElementNS("http://www.w3.org/2000/svg", 'svg'), 
       bBox = placement.getBBox(),
       x = bBox.width*relativePosition,
@@ -65,6 +65,7 @@ export function create(placement, relativePosition, relativeSize, fixedBorderSiz
 
   centerRect = createRect('centerRect', 0, 0, '100%', bBox.height, ['opacity:','0.2;']);
   selector.appendChild(centerRect);
+  
   makeDraggable(centerRect, placement, (draggable)=>{
     let {newPosition, previousPosition} = draggable;
     if ( newPosition < 0 ){

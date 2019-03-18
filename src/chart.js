@@ -1,4 +1,4 @@
-import {create as createSelector} from "./rectSelector.js"
+import {add as addDraggableSelector} from "./draggableSelector.js"
 
 let pipe = (...fns) => x => fns.reduce((v, f) => f(v), x);
 
@@ -35,8 +35,8 @@ function renderLine(canvas, line, viewBoxHeight, minValue, stepSize) {
 function render(_) {
   console.log('_ :', _);
   Object.keys(_.lines).forEach((hash)=>renderLine(_.canvas, _.lines[hash], _.viewBoxHeight, _.minValue , _.x.stepSize));
-  createSelector(_.canvas, 0.8, 0.2, 20);
-  // createSelector(_.canvas, 0, 0.6, 20);
+  addDraggableSelector(_.canvas, 0.8, 0.2, 20);
+  // addDraggableSelector(_.canvas, 0, 0.6, 20);
 }
 
 function prepareData(_) {

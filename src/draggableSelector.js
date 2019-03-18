@@ -9,8 +9,8 @@ function createRect(id, x, y, width, height, styles) {
   return rect;
 }
 
-function getMousePosition(evt, relativeParent) {
-  var CTM = relativeParent.getScreenCTM();
+function getMousePosition(evt, svg) {
+  var CTM = svg.getScreenCTM();
   return {
     x: (evt.clientX - CTM.e) / CTM.a
   };
@@ -19,33 +19,33 @@ function getMousePosition(evt, relativeParent) {
 function startDrag(evt, draggable) {
   console.log('startDrag: ', draggable)
   draggable.selected = true;
-  draggable.offset = getMousePosition(evt, draggable.relativeParent);
-  draggable.offset.x -= parseFloat(draggable.elem.getAttributeNS(null, "x"));
+  draggable.offset = getMousePosition(evt, draggable.elem);
+  draggable.offset.x -= parseFloat(evt.target.parentNode.getAttributeNS(null, "x"));
 }
 function drag(evt, draggable) {
   if(!draggable.selected){
     return;
   }
-  let coord = getMousePosition(evt, draggable.relativeParent);
+  evt.preventDefault();
+  let coord = getMousePosition(evt, draggable.elem);
   draggable.newPosition = coord.x - draggable.offset.x;
-  draggable.onPositionChange(draggable);
+  draggable.onPositionChange(evt, draggable);
 }
 function endDrag(evt, draggable) {
   console.log('endDrag: ', draggable)
   draggable.selected = false;
 }
 
-function makeDraggable(svg, relativeParent, onPositionChange) {
+function makeDraggable(svg, onPositionChange) {
   let draggable = {
-    relativeParent: relativeParent,
-    elem: elem.parentNode,
+    elem: svg,
     selected: false,
     onPositionChange
   };
 
-  svg.addEventListener('mousedown', evt=> startDrag(evt, draggable));
-  svg.addEventListener('mousemove', evt=> drag(evt, draggable));
-  svg.addEventListener('mouseup', evt=> endDrag(evt, draggable));
+  svg.addEventListener('mousedown', evt=> startDrag(evt, draggable), false);
+  svg.addEventListener('mousemove', evt=> drag(evt, draggable), false);
+  svg.addEventListener('mouseup', evt=> endDrag(evt, draggable), false);
   svg.addEventListener('mouseleave', evt=> endDrag(evt, draggable));
 }
 
@@ -66,25 +66,30 @@ export function add(placement, relativePosition, relativeSize, fixedBorderSize) 
   centerRect = createRect('centerRect', 0, 0, '100%', bBox.height, ['opacity:','0.2;']);
   selector.appendChild(centerRect);
   
-  makeDraggable(centerRect, placement, (draggable)=>{
+  makeDraggable(placement, (evt, draggable)=>{
+    if(evt.target.id !== 'centerRect'){
+      return;
+    }
+    // console.log('evt.target', evt.target, draggable)
+    // return;
     let {newPosition, previousPosition} = draggable;
-    if ( newPosition < 0 ){
-      newPosition = 0;
-    }
-    if ( (newPosition + width) > bBox.width ){
-      newPosition = bBox.width - width;
-    }
+    // if ( newPosition < 0 ){
+    //   newPosition = 0;
+    // }
+    // if ( (newPosition + width) > bBox.width ){
+    //   newPosition = bBox.width - width;
+    // }
     newPosition = parseFloat(newPosition).toPrecision(4);
     console.log('newPosition, previousPosition', newPosition, previousPosition)
     selector.setAttributeNS(null, "x", newPosition);
   });
 
-  let relativeBorderSize = Number.parseFloat(fixedBorderSize / bBox.width / relativeSize * 100).toPrecision(3);
-  leftRect = createRect('leftRect', 0, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
-  selector.appendChild(leftRect);
+  // let relativeBorderSize = Number.parseFloat(fixedBorderSize / bBox.width / relativeSize * 100).toPrecision(3);
+  // leftRect = createRect('leftRect', 0, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
+  // selector.appendChild(leftRect);
 
-  rightRect = createRect('rightRect', `${100 - relativeBorderSize}%`, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
-  selector.appendChild(rightRect);
+  // rightRect = createRect('rightRect', `${100 - relativeBorderSize}%`, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
+  // selector.appendChild(rightRect);
 
   placement.appendChild(selector);
   

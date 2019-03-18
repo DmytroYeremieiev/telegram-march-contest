@@ -17,7 +17,7 @@ function getMousePosition(evt, relativeParent) {
 }
 
 function startDrag(evt, draggable) {
-  console.log('startDrag: ', evt.target, draggable)
+  console.log('startDrag: ', draggable)
   draggable.selected = true;
   draggable.offset = getMousePosition(evt, draggable.relativeParent);
   draggable.offset.x -= parseFloat(draggable.elem.parentNode.getAttributeNS(null, "x"));
@@ -29,13 +29,18 @@ function drag(evt, draggable) {
   }
   let coord = getMousePosition(evt, draggable.relativeParent);
   let newPosition = coord.x - draggable.offset.x;
-  // draggable.elem.parentNode.getBBox()
-  // if (newPosition + )
-  draggable.elem.parentNode.setAttributeNS(null, "x", coord.x - draggable.offset.x);
-
+  if ( newPosition < draggable.minX ){
+    newPosition = draggable.minX;
+  }
+  if ( (newPosition + draggable.width) > draggable.maxX ){
+    newPosition = draggable.maxX - draggable.width;
+  }
+  newPosition = parseFloat(newPosition).toPrecision(4);
+  console.log('drag: coord.x - draggable.offset.x', coord.x, '-',draggable.offset.x,' = ', newPosition)
+  draggable.elem.parentNode.setAttributeNS(null, "x", newPosition);
 }
 function endDrag(evt, draggable) {
-  // console.log('endDrag: ', evt.target, draggable)
+  console.log('endDrag: ', draggable)
   draggable.selected = false;
 }
 
@@ -44,8 +49,9 @@ function makeDraggable(elem, relativeParent, minX, maxX) {
     relativeParent: relativeParent,
     elem: elem,
     selected: false,
+    width: parseFloat(elem.parentNode.getAttributeNS(null, "width")),
     minX: minX,
-    maxX: maxX 
+    maxX: maxX
   };
 
   elem.addEventListener('mousedown', evt=> startDrag(evt, draggable));
@@ -66,7 +72,7 @@ export function create(placement, x, y, width, height, relativePosition, relativ
   svg.setAttributeNS(null, 'width', `${width*relativeSize}`);
   svg.setAttributeNS(null, 'style', ['overflow:', 'visible;'].join(''));
 
-  centerRect = createRect('centerRect', 0, 0, '100%', height, ['opacity:','0.2;'])
+  centerRect = createRect('centerRect', 0, 0, '100%', height, ['opacity:','0.2;']);
   svg.appendChild(centerRect);
   makeDraggable(centerRect, placement, 0, width);
 

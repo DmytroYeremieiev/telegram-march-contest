@@ -17,19 +17,18 @@ function getXPosition(evt, svg) {
 function startDrag(evt, draggable) {
   console.log('startDrag: ', draggable)
   draggable.selected = evt.target.id;
-  draggable.x_coord = getXPosition(evt, draggable.svg);
-  draggable.x = parseFloat(evt.target.parentNode.getAttributeNS(null, "x"));
-  draggable.width = parseFloat(evt.target.parentNode.getAttributeNS(null, "width"));
-  draggable.x_offset = draggable.x_coord - draggable.x;
+  draggable.x = getXPosition(evt, draggable.svg);
+  draggable.el_x = parseFloat(evt.target.parentNode.getAttributeNS(null, "x"));
+  draggable.el_width = parseFloat(evt.target.parentNode.getAttributeNS(null, "width"));
+  draggable.x_offset = draggable.x - draggable.el_x;
 }
 function drag(evt, draggable) {
   if(!draggable.selected){
     return;
   }
   evt.preventDefault();
-  let x_coord = getXPosition(evt, draggable.svg);
-  draggable.newPosition = x_coord - draggable.x_offset;
-  draggable.new_x_coord = x_coord;
+  draggable.new_x = getXPosition(evt, draggable.svg);
+  draggable.new_el_x = draggable.new_x - draggable.x_offset;
   draggable.onPositionChange(evt, draggable);
 }
 function endDrag(evt, draggable) {
@@ -75,24 +74,26 @@ export function add(placement, relativePosition, relativeSize, sideSize) {
   selector.appendChild(rightRect);
   
   makeDraggable(placement, (evt, draggable)=>{
-    let {newPosition} = draggable;
-    newPosition = parseFloat(newPosition).toPrecision(4);
-    console.log('selected, newX, startX, svgX, offset: ', draggable.selected, draggable.new_x_coord, draggable.x_coord, draggable.x, draggable.x_offset)
+    let {new_el_x} = draggable;
+    new_el_x = +parseFloat(new_el_x).toPrecision(4);
+    console.log(`selected - '${draggable.selected}', x: ${draggable.x}, new_x: ${draggable.new_x} \n 
+                      el_x: ${draggable.el_x}, new_el_x: ${draggable.new_el_x} \n
+                  el_width: ${draggable.el_width}, x_offset: ${draggable.x_offset}`);
 
     if(draggable.selected === 'leftRect'){
-      draggable.width = draggable.x - newPosition + draggable.width;
+      draggable.width = draggable.el_x - new_el_x + draggable.width;
       selector.setAttributeNS(null, "width", draggable.width);
-      selector.setAttributeNS(null, "x", newPosition);
+      selector.setAttributeNS(null, "x", new_el_x);
     }if(draggable.selected === 'rightRect'){
 
     }else{
-      if ( newPosition < 0 ){
-        newPosition = 0;
+      if ( new_el_x < 0 ){
+        new_el_x = 0;
       }
-      if ( (newPosition + width) > bBox.width ){
-        newPosition = bBox.width - width;
+      if ( (new_el_x + width) > bBox.width ){
+        new_el_x = bBox.width - width;
       }
-      selector.setAttributeNS(null, "x", newPosition);
+      selector.setAttributeNS(null, "x", new_el_x);
     }
   });
   placement.appendChild(selector);

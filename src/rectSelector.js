@@ -20,8 +20,7 @@ function startDrag(evt, draggable) {
   console.log('startDrag: ', draggable)
   draggable.selected = true;
   draggable.offset = getMousePosition(evt, draggable.relativeParent);
-  draggable.offset.x -= parseFloat(draggable.elem.parentNode.getAttributeNS(null, "x"));
-  draggable.offset.y -= parseFloat(draggable.elem.parentNode.getAttributeNS(null, "y"));
+  draggable.offset.x -= parseFloat(draggable.elem.getAttributeNS(null, "x"));
 }
 function drag(evt, draggable) {
   if(!draggable.selected){
@@ -37,7 +36,7 @@ function drag(evt, draggable) {
   }
   newPosition = parseFloat(newPosition).toPrecision(4);
   console.log('drag: coord.x - draggable.offset.x', coord.x, '-',draggable.offset.x,' = ', newPosition)
-  draggable.elem.parentNode.setAttributeNS(null, "x", newPosition);
+  draggable.elem.setAttributeNS(null, "x", newPosition);
 }
 function endDrag(evt, draggable) {
   console.log('endDrag: ', draggable)
@@ -47,7 +46,7 @@ function endDrag(evt, draggable) {
 function makeDraggable(elem, relativeParent, minX, maxX) {
   let draggable = {
     relativeParent: relativeParent,
-    elem: elem,
+    elem: elem.parentNode,
     selected: false,
     width: parseFloat(elem.parentNode.getAttributeNS(null, "width")),
     minX: minX,

@@ -12,28 +12,26 @@ function createRect(id, x, y, width, height, styles) {
 function getMousePosition(evt, relativeParent) {
   var CTM = relativeParent.getScreenCTM();
   return {
-    x: (evt.clientX - CTM.e) / CTM.a,
-    y: (evt.clientY - CTM.f) / CTM.d
+    x: (evt.clientX - CTM.e) / CTM.a
   };
 }
 
 function startDrag(evt, draggable) {
   console.log('startDrag: ', evt.target, draggable)
   draggable.selected = true;
+  draggable.offset = getMousePosition(evt, draggable.relativeParent);
+  draggable.offset.x -= parseFloat(draggable.elem.parentNode.getAttributeNS(null, "x"));
+  draggable.offset.y -= parseFloat(draggable.elem.parentNode.getAttributeNS(null, "y"));
 }
 function drag(evt, draggable) {
   if(!draggable.selected){
     return;
   }
-  evt.preventDefault();
   let coord = getMousePosition(evt, draggable.relativeParent);
-
-  xOffset.x -= parseFloat(selectedElement.getAttributeNS(null, "x"));
-  yOffset.y -= parseFloat(selectedElement.getAttributeNS(null, "y"));
-
-  // var x = parseFloat(draggable.elem.parentNode.getAttributeNS(null, "x"));
-  console.log('drag: coord', coord);
-  // selectedElement.setAttributeNS(null, "x", x + 0.1);
+  let newPosition = coord.x - draggable.offset.x;
+  // draggable.elem.parentNode.getBBox()
+  // if (newPosition + )
+  draggable.elem.parentNode.setAttributeNS(null, "x", coord.x - draggable.offset.x);
 
 }
 function endDrag(evt, draggable) {
@@ -41,11 +39,13 @@ function endDrag(evt, draggable) {
   draggable.selected = false;
 }
 
-function makeDraggable(elem, relativeParent) {
+function makeDraggable(elem, relativeParent, minX, maxX) {
   let draggable = {
     relativeParent: relativeParent,
     elem: elem,
-    selected: false
+    selected: false,
+    minX: minX,
+    maxX: maxX 
   };
 
   elem.addEventListener('mousedown', evt=> startDrag(evt, draggable));
@@ -57,7 +57,7 @@ function makeDraggable(elem, relativeParent) {
 export function create(placement, x, y, width, height, relativePosition, relativeSize, fixedBorderSize) {
   let svg = document.createElementNS("http://www.w3.org/2000/svg", 'svg'), 
       centerRect, leftRect, rightRect;
-
+  
   svg.setAttributeNS(null, 'viewBox', `${x} ${y} ${width} ${height}`);
   svg.setAttributeNS(null, 'preserveAspectRatio', 'none');
   
@@ -68,7 +68,7 @@ export function create(placement, x, y, width, height, relativePosition, relativ
 
   centerRect = createRect('centerRect', 0, 0, '100%', height, ['opacity:','0.2;'])
   svg.appendChild(centerRect);
-  makeDraggable(centerRect, placement);
+  makeDraggable(centerRect, placement, 0, width);
 
   let relativeBorderSize = Number.parseFloat(fixedBorderSize / width / relativeSize * 100).toPrecision(3);
   leftRect = createRect('leftRect', 0, 0, `${relativeBorderSize}%`, height, ['opacity:','0.2;'])

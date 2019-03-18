@@ -9,26 +9,26 @@ function createRect(id, x, y, width, height, styles) {
   return rect;
 }
 
-function getMousePosition(evt, svg) {
+function getXPosition(evt, svg) {
   var CTM = svg.getScreenCTM();
-  return {
-    x: (evt.clientX - CTM.e) / CTM.a
-  };
+  return (evt.clientX - CTM.e) / CTM.a
 }
 
 function startDrag(evt, draggable) {
   console.log('startDrag: ', draggable)
   draggable.selected = true;
-  draggable.offset = getMousePosition(evt, draggable.elem);
-  draggable.offset.x -= parseFloat(evt.target.parentNode.getAttributeNS(null, "x"));
+  draggable.x_coord = getXPosition(evt, draggable.svg);
+  draggable.x = parseFloat(evt.target.parentNode.getAttributeNS(null, "x"));
+  draggable.x_offset = draggable.x_coord - draggable.x;
 }
 function drag(evt, draggable) {
   if(!draggable.selected){
     return;
   }
   evt.preventDefault();
-  let coord = getMousePosition(evt, draggable.elem);
-  draggable.newPosition = coord.x - draggable.offset.x;
+  let x_coord = getXPosition(evt, draggable.svg);
+  draggable.newPosition = x_coord - draggable.x_offset;
+  draggable.new_x_coord = x_coord;
   draggable.onPositionChange(evt, draggable);
 }
 function endDrag(evt, draggable) {
@@ -38,7 +38,7 @@ function endDrag(evt, draggable) {
 
 function makeDraggable(svg, onPositionChange) {
   let draggable = {
-    elem: svg,
+    svg: svg,
     selected: false,
     onPositionChange
   };
@@ -49,7 +49,7 @@ function makeDraggable(svg, onPositionChange) {
   svg.addEventListener('mouseleave', evt=> endDrag(evt, draggable));
 }
 
-export function add(placement, relativePosition, relativeSize, fixedBorderSize) {
+export function add(placement, relativePosition, relativeSize, sideSize) {
   let selector = document.createElementNS("http://www.w3.org/2000/svg", 'svg'), 
       bBox = placement.getBBox(),
       x = bBox.width*relativePosition,
@@ -66,31 +66,30 @@ export function add(placement, relativePosition, relativeSize, fixedBorderSize) 
   centerRect = createRect('centerRect', 0, 0, '100%', bBox.height, ['opacity:','0.2;']);
   selector.appendChild(centerRect);
   
+  let relativeBorderSize = Number.parseFloat(sideSize / bBox.width / relativeSize * 100).toPrecision(3);
+  leftRect = createRect('leftRect', 0, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
+  selector.appendChild(leftRect);
+  
+  rightRect = createRect('rightRect', `${100 - relativeBorderSize}%`, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
+  selector.appendChild(rightRect);
+  
   makeDraggable(placement, (evt, draggable)=>{
-    if(evt.target.id !== 'centerRect'){
-      return;
+    // if(!['centerRect', 'leftRect', 'rightRect'].includes(evt.target.id)){
+    //   return;
+    // }
+    let {newPosition} = draggable;
+    if ( newPosition < 0 ){
+      newPosition = 0;
     }
-    // console.log('evt.target', evt.target, draggable)
-    // return;
-    let {newPosition, previousPosition} = draggable;
-    // if ( newPosition < 0 ){
-    //   newPosition = 0;
-    // }
-    // if ( (newPosition + width) > bBox.width ){
-    //   newPosition = bBox.width - width;
-    // }
+    if ( (newPosition + width) > bBox.width ){
+      newPosition = bBox.width - width;
+    }
     newPosition = parseFloat(newPosition).toPrecision(4);
-    console.log('newPosition, previousPosition', newPosition, previousPosition)
+    // setTimeout(_=>selector.setAttributeNS(null, "x", newPosition),0)
+    console.log('newX, startX, svgX, offset', draggable.new_x_coord, draggable.x_coord, draggable.x, draggable.x_offset)
+
     selector.setAttributeNS(null, "x", newPosition);
   });
-
-  // let relativeBorderSize = Number.parseFloat(fixedBorderSize / bBox.width / relativeSize * 100).toPrecision(3);
-  // leftRect = createRect('leftRect', 0, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
-  // selector.appendChild(leftRect);
-
-  // rightRect = createRect('rightRect', `${100 - relativeBorderSize}%`, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
-  // selector.appendChild(rightRect);
-
   placement.appendChild(selector);
   
   return {

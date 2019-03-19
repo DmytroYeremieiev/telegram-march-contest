@@ -19,7 +19,7 @@ function startDrag(evt, draggable) {
   draggable.selected = evt.target.id;
   draggable.x = getXPosition(evt, draggable.svg);
   draggable.el_x = parseFloat(evt.target.parentNode.getAttributeNS(null, "x"));
-  draggable.el_width = parseFloat(evt.target.parentNode.getAttributeNS(null, "width"));
+  draggable.new_el_width = draggable.el_width = parseFloat(evt.target.parentNode.getAttributeNS(null, "width"));
   draggable.x0_offset = draggable.x - draggable.el_x;
   draggable.x1_offset = draggable.el_x + draggable.el_width - draggable.x;
 }
@@ -77,19 +77,40 @@ export function add(placement, relativePosition, relativeSize, sideSize) {
   makeDraggable(placement, (evt, draggable)=>{
     let {selected, x, new_x, el_x, new_el_x, el_width, new_el_width, x0_offset, x1_offset} = draggable, 
         widthDelta = draggable.new_el_width || draggable.el_width;
-    draggable.new_el_x = +parseFloat(new_el_x).toPrecision(4);
-    console.log(`selected - '${selected}', x: ${x}, new_x: ${new_x}, 
-                  x0_offset: ${x0_offset}, x1_offset: ${x1_offset} \n 
-                      el_x: ${el_x}, new_el_x: ${new_el_x} \n
-                  el_width: ${el_width}, new_el_width: ${new_el_width}`);
+    new_el_x = +parseFloat(new_el_x).toPrecision(6);
+    
+    function log() {
+      console.log(
+      `selected - '${selected}', \n` +
+      `x: ${x}, new_x: ${new_x}, \n` +
+      `x0_offset: ${x0_offset}, x1_offset: ${x1_offset} \n ` +
+      `el_x: ${el_x}, new_el_x: ${new_el_x} \n` +
+      `el_width: ${el_width}, new_el_width: ${new_el_width}`
+      );
+    }
+
 
     if(selected === 'leftRect'){
-      draggable.new_el_width = new_el_width = el_width + x - new_x;
-      selector.setAttributeNS(null, "width", new_el_width);
+      new_el_width = el_width + el_x - new_el_x;
+      if(new_el_x <= 0){
+        new_el_x = 0;
+        new_el_width = el_width + el_x;
+      }
+      if(new_el_width <= width){
+        log();
+        new_el_x = draggable.p_new_el_x;
+        new_el_width = width;
+      }
+      draggable.p_new_el_x = new_el_x;
+      console.log('new_el_width', new_el_width)
       selector.setAttributeNS(null, "x", new_el_x);
-    }else if(selected === 'rightRect'){
-      new_el_width = el_width + new_x - x;
       selector.setAttributeNS(null, "width", new_el_width);
+    }else if(selected === 'rightRect'){
+      // draggable.new_el_width = el_width + new_x - x;
+      // if( new_x + x1_offset > bBox.width ){
+      //   draggable.new_el_width = widthDelta;
+      // }
+      // selector.setAttributeNS(null, "width", draggable.new_el_width);
     }else{
       if ( new_el_x < 0 ){
         new_el_x = 0;

@@ -1,11 +1,19 @@
-function createRect(id, x, y, width, height, styles) {
+function createRect(id, styles) {
   let rect = document.createElementNS("http://www.w3.org/2000/svg", 'rect');
   rect.setAttributeNS(null, 'id', id);
+  rect.setAttributeNS(null, 'style', styles.join(''));
+  return rect;
+}
+
+function relativeSideRectSize(sideSize, width) {
+  return +parseFloat(sideSize / width * 100).toPrecision(3);
+}
+
+function setRectDimentions(rect, x, y, width, height) {
   rect.setAttributeNS(null, 'x', x);
   rect.setAttributeNS(null, 'y', y);
   rect.setAttributeNS(null, 'width', width);
   rect.setAttributeNS(null, 'height', height);
-  rect.setAttributeNS(null, 'style', styles.join(''));
   return rect;
 }
 
@@ -50,8 +58,8 @@ function makeDraggable(svg, onPositionChange) {
   svg.addEventListener('mouseleave', evt=> endDrag(evt, draggable));
 }
 
-export function add(placement, relativePosition, relativeSize, sideSize) {
-  let selector = document.createElementNS("http://www.w3.org/2000/svg", 'svg'), 
+export function add(placement, relativePosition, relativeSize, relativeSideSize) {
+  let selector = document.createElementNS("http://www.w3.org/2000/svg", 'svg'),
       bBox = placement.getBBox(),
       x = bBox.width*relativePosition,
       width = bBox.width*relativeSize,
@@ -64,14 +72,18 @@ export function add(placement, relativePosition, relativeSize, sideSize) {
   selector.setAttributeNS(null, 'width', width);
   selector.setAttributeNS(null, 'style', ['overflow:', 'visible;'].join(''));
 
-  centerRect = createRect('centerRect', 0, 0, '100%', bBox.height, ['opacity:','0.2;']);
+
+  centerRect = createRect('centerRect', ['opacity:','0.2;']);
+  setRectDimentions(centerRect, 0, 0, '100%', bBox.height);
   selector.appendChild(centerRect);
   
-  let relativeBorderSize = Number.parseFloat(sideSize / bBox.width / relativeSize * 100).toPrecision(3);
-  leftRect = createRect('leftRect', 0, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
+  let relativeSideRectSize = Number.parseFloat(relativeSideSize / width * 100 ).toPrecision(3);
+  leftRect = createRect('leftRect', ['opacity:','0.2;']);
+  setRectDimentions(leftRect, 0, 0, `${relativeSideRectSize}%`, bBox.height);
   selector.appendChild(leftRect);
   
-  rightRect = createRect('rightRect', `${100 - relativeBorderSize}%`, 0, `${relativeBorderSize}%`, bBox.height, ['opacity:','0.2;'])
+  rightRect = createRect('rightRect', ['opacity:','0.2;'])
+  setRectDimentions(rightRect, `${100 - relativeSideRectSize}%`, 0, `${relativeSideRectSize}%`, bBox.height);
   selector.appendChild(rightRect);
   
   makeDraggable(placement, (evt, draggable)=>{
@@ -87,7 +99,7 @@ export function add(placement, relativePosition, relativeSize, sideSize) {
       `el_width: ${el_width}, new_el_width: ${new_el_width}`
       );
     }
-    log();
+    // log();
     if(selected === 'leftRect'){
       new_el_width = el_width + el_x - new_el_x;
       if(new_el_x < 0){

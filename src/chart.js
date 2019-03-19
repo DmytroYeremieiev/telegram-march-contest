@@ -1,16 +1,5 @@
 import {add as addDraggableSelector} from "./draggableSelector.js"
-
-let pipe = (...fns) => x => fns.reduce((v, f) => f(v), x);
-
-function createLine(canvas, x1, x2, y1, y2) {
-  let line = document.createElement('line');
-  canvas.setAttribute('x1', x1);
-  canvas.setAttribute('x2', x2);
-  canvas.setAttribute('y1', y1);
-  canvas.setAttribute('y2', y2);
-  canvas.setAttribute('stroke', 'black');
-  line.appendChild(line);
-}
+import {pipe} from "./common.js"
 
 function renderLine(canvas, line, viewBoxHeight, minValue, stepSize) {
   let path = document.createElementNS("http://www.w3.org/2000/svg", 'path'),

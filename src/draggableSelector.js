@@ -5,8 +5,8 @@ function createRect(id, styles) {
   return rect;
 }
 
-function relativeSideRectSize(sideSize, width) {
-  return +parseFloat(sideSize / width * 100).toPrecision(3);
+function getSideRailSize(relativeSideRailSize, relativeSelectorSize) {
+  return +parseFloat(relativeSideRailSize*100 / relativeSelectorSize).toPrecision(3);
 }
 
 function setRectDimentions(rect, x, y, width, height) {
@@ -58,13 +58,16 @@ function makeDraggable(svg, onPositionChange) {
   svg.addEventListener('mouseleave', evt=> endDrag(evt, draggable));
 }
 
-export function add(placement, relativePosition, relativeSize, relativeSideSize) {
+export function add(placement, relativePosition, relativeSelectorSize, relativeSideRailSize) {
   let selector = document.createElementNS("http://www.w3.org/2000/svg", 'svg'),
       bBox = placement.getBBox(),
       x = bBox.width*relativePosition,
-      width = bBox.width*relativeSize,
+      width = bBox.width*relativeSelectorSize,
       centerRect, leftRect, rightRect;
   
+  let sideRailSize = getSideRailSize(relativeSideRailSize, relativeSelectorSize);
+  console.log('sideRailSize', sideRailSize);
+
   selector.setAttributeNS(null, 'viewBox', `${bBox.x} ${bBox.y} ${bBox.width} ${bBox.height}`);
   selector.setAttributeNS(null, 'preserveAspectRatio', 'none');
 
@@ -77,13 +80,12 @@ export function add(placement, relativePosition, relativeSize, relativeSideSize)
   setRectDimentions(centerRect, 0, 0, '100%', bBox.height);
   selector.appendChild(centerRect);
   
-  let relativeSideRectSize = Number.parseFloat(relativeSideSize / width * 100 ).toPrecision(3);
   leftRect = createRect('leftRect', ['opacity:','0.2;']);
-  setRectDimentions(leftRect, 0, 0, `${relativeSideRectSize}%`, bBox.height);
+  setRectDimentions(leftRect, 0, 0, `${sideRailSize}%`, bBox.height);
   selector.appendChild(leftRect);
   
   rightRect = createRect('rightRect', ['opacity:','0.2;'])
-  setRectDimentions(rightRect, `${100 - relativeSideRectSize}%`, 0, `${relativeSideRectSize}%`, bBox.height);
+  setRectDimentions(rightRect, `${100 - sideRailSize}%`, 0, `${sideRailSize}%`, bBox.height);
   selector.appendChild(rightRect);
   
   makeDraggable(placement, (evt, draggable)=>{
@@ -130,6 +132,9 @@ export function add(placement, relativePosition, relativeSize, relativeSideSize)
       }
       selector.setAttributeNS(null, "x", new_el_x);
     }
+    let sideRailSize = getSideRailSize(relativeSideRailSize, new_el_width/bBox.width);
+    setRectDimentions(leftRect, 0, 0, `${sideRailSize}%`, bBox.height);
+    setRectDimentions(rightRect, `${100 - sideRailSize}%`, 0, `${sideRailSize}%`, bBox.height);
   });
   placement.appendChild(selector);
   

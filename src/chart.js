@@ -24,8 +24,7 @@ function renderLine(canvas, line, viewBoxHeight, minValue, stepSize) {
 function render(_) {
   console.log('_ :', _);
   Object.keys(_.lines).forEach((hash)=>renderLine(_.canvas, _.lines[hash], _.viewBoxHeight, _.minValue , _.x.stepSize));
-  addDraggableSelector(_.canvas, 0.8, 0.2, 20);
-  // addDraggableSelector(_.canvas, 0, 0.6, 20);
+  addDraggableSelector(_.canvas, 0.5, 0.2, 0.05);
 }
 
 function prepareData(_) {

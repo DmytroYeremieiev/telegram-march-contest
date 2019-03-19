@@ -75,8 +75,7 @@ export function add(placement, relativePosition, relativeSize, sideSize) {
   selector.appendChild(rightRect);
   
   makeDraggable(placement, (evt, draggable)=>{
-    let {selected, x, new_x, el_x, new_el_x, el_width, new_el_width, x0_offset, x1_offset} = draggable, 
-        widthDelta = draggable.new_el_width || draggable.el_width;
+    let {selected, x, new_x, el_x, new_el_x, el_width, new_el_width, x0_offset, x1_offset} = draggable; 
     new_el_x = +parseFloat(new_el_x).toPrecision(6);
     
     function log() {
@@ -88,35 +87,34 @@ export function add(placement, relativePosition, relativeSize, sideSize) {
       `el_width: ${el_width}, new_el_width: ${new_el_width}`
       );
     }
-
-
+    log();
     if(selected === 'leftRect'){
       new_el_width = el_width + el_x - new_el_x;
-      if(new_el_x <= 0){
+      if(new_el_x < 0){
         new_el_x = 0;
         new_el_width = el_width + el_x;
       }
-      if(new_el_width <= width){
-        log();
-        new_el_x = draggable.p_new_el_x;
+      if(new_el_width < width){
+        new_el_x -= width - new_el_width;
         new_el_width = width;
       }
-      draggable.p_new_el_x = new_el_x;
-      console.log('new_el_width', new_el_width)
       selector.setAttributeNS(null, "x", new_el_x);
       selector.setAttributeNS(null, "width", new_el_width);
     }else if(selected === 'rightRect'){
-      // draggable.new_el_width = el_width + new_x - x;
-      // if( new_x + x1_offset > bBox.width ){
-      //   draggable.new_el_width = widthDelta;
-      // }
-      // selector.setAttributeNS(null, "width", draggable.new_el_width);
+      new_el_width = el_width + new_x - x;
+      if(new_el_width < width){
+        new_el_width = width;
+      }
+      if( el_x + new_el_width > bBox.width ){
+        new_el_width = bBox.width - el_x;
+      }
+      selector.setAttributeNS(null, "width", new_el_width);
     }else{
       if ( new_el_x < 0 ){
         new_el_x = 0;
       }
-      if ( (new_el_x + widthDelta) > bBox.width ){
-        new_el_x = bBox.width - widthDelta;
+      if ( new_el_x + new_el_width > bBox.width ){
+        new_el_x = bBox.width - new_el_width;
       }
       selector.setAttributeNS(null, "x", new_el_x);
     }

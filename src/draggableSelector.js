@@ -74,24 +74,26 @@ export function add(placement, relativePosition, relativeSize, sideSize) {
   selector.appendChild(rightRect);
   
   makeDraggable(placement, (evt, draggable)=>{
-    let {new_el_x} = draggable;
-    new_el_x = +parseFloat(new_el_x).toPrecision(4);
-    console.log(`selected - '${draggable.selected}', x: ${draggable.x}, new_x: ${draggable.new_x} \n 
-                      el_x: ${draggable.el_x}, new_el_x: ${draggable.new_el_x} \n
-                  el_width: ${draggable.el_width}, x_offset: ${draggable.x_offset}`);
+    let {selected, x, new_x, el_x, new_el_x, el_width, new_el_width, x_offset} = draggable, 
+        widthDelta = draggable.new_el_width || draggable.el_width;
+    draggable.new_el_x = +parseFloat(new_el_x).toPrecision(4);
+    console.log(`selected - '${selected}', x: ${x}, new_x: ${new_x}, x_offset: ${x_offset} \n 
+                      el_x: ${el_x}, new_el_x: ${new_el_x} \n
+                  el_width: ${el_width}, new_el_width: ${new_el_width}`);
 
-    if(draggable.selected === 'leftRect'){
-      draggable.width = draggable.el_x - new_el_x + draggable.width;
-      selector.setAttributeNS(null, "width", draggable.width);
+    if(selected === 'leftRect'){
+      new_el_width = el_width + x - new_x;
+      selector.setAttributeNS(null, "width", new_el_width);
       selector.setAttributeNS(null, "x", new_el_x);
-    }if(draggable.selected === 'rightRect'){
-
+    }else if(selected === 'rightRect'){
+      new_el_width = el_width + new_x - x;
+      selector.setAttributeNS(null, "width", new_el_width);
     }else{
       if ( new_el_x < 0 ){
         new_el_x = 0;
       }
-      if ( (new_el_x + width) > bBox.width ){
-        new_el_x = bBox.width - width;
+      if ( (new_el_x + widthDelta) > bBox.width ){
+        new_el_x = bBox.width - widthDelta;
       }
       selector.setAttributeNS(null, "x", new_el_x);
     }

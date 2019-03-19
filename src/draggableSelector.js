@@ -20,7 +20,8 @@ function startDrag(evt, draggable) {
   draggable.x = getXPosition(evt, draggable.svg);
   draggable.el_x = parseFloat(evt.target.parentNode.getAttributeNS(null, "x"));
   draggable.el_width = parseFloat(evt.target.parentNode.getAttributeNS(null, "width"));
-  draggable.x_offset = draggable.x - draggable.el_x;
+  draggable.x0_offset = draggable.x - draggable.el_x;
+  draggable.x1_offset = draggable.el_x + draggable.el_width - draggable.x;
 }
 function drag(evt, draggable) {
   if(!draggable.selected){
@@ -28,7 +29,7 @@ function drag(evt, draggable) {
   }
   evt.preventDefault();
   draggable.new_x = getXPosition(evt, draggable.svg);
-  draggable.new_el_x = draggable.new_x - draggable.x_offset;
+  draggable.new_el_x = draggable.new_x - draggable.x0_offset;
   draggable.onPositionChange(evt, draggable);
 }
 function endDrag(evt, draggable) {
@@ -74,15 +75,16 @@ export function add(placement, relativePosition, relativeSize, sideSize) {
   selector.appendChild(rightRect);
   
   makeDraggable(placement, (evt, draggable)=>{
-    let {selected, x, new_x, el_x, new_el_x, el_width, new_el_width, x_offset} = draggable, 
+    let {selected, x, new_x, el_x, new_el_x, el_width, new_el_width, x0_offset, x1_offset} = draggable, 
         widthDelta = draggable.new_el_width || draggable.el_width;
     draggable.new_el_x = +parseFloat(new_el_x).toPrecision(4);
-    console.log(`selected - '${selected}', x: ${x}, new_x: ${new_x}, x_offset: ${x_offset} \n 
+    console.log(`selected - '${selected}', x: ${x}, new_x: ${new_x}, 
+                  x0_offset: ${x0_offset}, x1_offset: ${x1_offset} \n 
                       el_x: ${el_x}, new_el_x: ${new_el_x} \n
                   el_width: ${el_width}, new_el_width: ${new_el_width}`);
 
     if(selected === 'leftRect'){
-      new_el_width = el_width + x - new_x;
+      draggable.new_el_width = new_el_width = el_width + x - new_x;
       selector.setAttributeNS(null, "width", new_el_width);
       selector.setAttributeNS(null, "x", new_el_x);
     }else if(selected === 'rightRect'){

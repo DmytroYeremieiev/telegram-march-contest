@@ -1,15 +1,15 @@
 import {add as addDraggableSelector} from "./draggableSelector.js"
 import {pipe} from "./common.js"
 
-function renderLine(canvas, line, viewBoxHeight, minValue, stepSize) {
+function renderLine(canvas, line, viewBoxHeight, y_coefficient, minValue, stepSize) {
   let path = document.createElementNS("http://www.w3.org/2000/svg", 'path'),
       d = '',
       x = 0, y = null;
   for (let j = 0; j < line.data.length; j++) {
     const prefix = j === 0 ? 'M' : 'L';
-    y = viewBoxHeight - line.data[j] + minValue;
+    y = viewBoxHeight - (line.data[j] - minValue)*y_coefficient;
     d += prefix + x +','+ y;
-    // if (j === line.data.length - 1) {
+    // if (y < 0) {
     //   console.log('j, line.data[j], x, y', j, line.data[j], x, y)
     // }
     x += stepSize;
@@ -23,10 +23,18 @@ function renderLine(canvas, line, viewBoxHeight, minValue, stepSize) {
 
 function render(_) {
   console.log('_ :', _);
-  Object.values(_.lines).forEach((line)=>renderLine(_.canvas, line, _.viewBoxHeight, _.minValue , _.x.stepSize));
+  Object.values(_.lines).forEach((line)=>renderLine(_.canvas, line, _.viewBoxHeight, _.y_coefficient, _.minValue , _.x.stepSize));
   addDraggableSelector(_.canvas, 0.5, 0.2, 0.05).onSelected((x, width)=>{
     console.log('onSelected', x, width)
   });
+}
+
+function setDimentions(_) {
+  const {x} = _;
+  _.viewBoxWidth = x.stepSize * (x.steps.length - 1);
+  _.viewBoxHeight = _.viewBoxWidth / 4;
+  _.y_coefficient = _.viewBoxHeight / (_.maxValue - _.minValue);
+  return _
 }
 
 function prepareData(_) {
@@ -58,13 +66,6 @@ function setElementInnerSize(_) {
   const props = window.getComputedStyle(_.placement);
   _.canvasWidth = _.placement.clientWidth - parseFloat(props.paddingLeft) - parseFloat(props.paddingRight);
   _.canvasHeight = _.placement.clientHeight - parseFloat(props.paddingTop) -  parseFloat(props.paddingBottom);
-  return _
-}
-
-function setDimentions(_) {
-  const {x} = _;
-  _.viewBoxWidth = x.stepSize * (x.steps.length - 1);
-  _.viewBoxHeight = _.maxValue - _.minValue;
   return _
 }
 

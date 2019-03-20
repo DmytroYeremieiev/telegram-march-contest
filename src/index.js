@@ -10,7 +10,7 @@ import chart from './chart.js';
   let config = {
     // gridSize: 20
   } 
-  chart.create(document.getElementById('main-canvas'), config, chart_data[0]).render();
+  chart.create(document.getElementById('main-canvas'), config, chart_data[1]).render();
 })()
 
 

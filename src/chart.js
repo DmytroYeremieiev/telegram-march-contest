@@ -27,7 +27,7 @@ function render(_) {
     renderLine(_.viewAllSvg, line, _.viewBoxHeight, _.y_step_coefficient, _.minValue , _.x.stepSize);
     let panViewSvg_viewBoxHeight = _.viewBoxWidth;
     let panViewSvg_y_step_coefficient = _.viewBoxWidth / (_.maxValue - _.minValue);
-    let panViewSvg_stepSize = Math.ceil(_.canvasWidth * 4 / (_.x.steps.length - 1));
+    let panViewSvg_stepSize = Math.ceil(_.containerWidth * 4 / (_.x.steps.length - 1));
 
     renderLine(_.panViewSvg, line, panViewSvg_viewBoxHeight, panViewSvg_y_step_coefficient, _.minValue , panViewSvg_stepSize);
   });
@@ -59,7 +59,7 @@ function prepareData(_) {
       lines[hash].max = Math.max.apply(null, column);
     }else{
       x.steps = column;
-      x.stepSize = Math.ceil(_.canvasWidth / (x.steps.length - 1));
+      x.stepSize = Math.ceil(_.containerWidth / (x.steps.length - 1));
     }
   });
   _.lines = lines;
@@ -69,36 +69,49 @@ function prepareData(_) {
   return _
 }
 
-function setElementContainerSize(_) {
+function setContainerSize(_) {
   const props = window.getComputedStyle(_.placement);
-  _.canvasWidth = _.placement.clientWidth - parseFloat(props.paddingLeft) - parseFloat(props.paddingRight);
-  // _.canvasHeight = _.placement.clientHeight - parseFloat(props.paddingTop) -  parseFloat(props.paddingBottom);
+  _.containerWidth = _.placement.clientWidth - parseFloat(props.paddingLeft) - parseFloat(props.paddingRight);
+  // _.containerWidth = _.placement.clientHeight - parseFloat(props.paddingTop) -  parseFloat(props.paddingBottom);
   return _
+}
+
+function createSvg(id, viewPort = {}, viewBox = {}, styles = []) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  svg.setAttributeNS(null, 'x', viewPort.x || '');
+  svg.setAttributeNS(null, 'y', viewPort.y || '');
+  svg.setAttributeNS(null, 'width', viewPort.width || '');
+  svg.setAttributeNS(null, 'height', viewPort.height  || '');
+  svg.setAttributeNS(null, 'viewBox', `${viewBox.x || 0} ${viewBox.y || 0} ${viewBox.width || 0} ${viewBox.height || 0}`);
+  svg.setAttribute('id', id || '');
+  svg.setAttribute('style', styles.join(''));
+  return svg;
 }
 
 function create(placement, config, data){
   const chart = {};
-  const viewAllSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  viewAllSvg.setAttribute('style', 'border: 1px solid black');
-  viewAllSvg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+
   chart.config = config;
   chart._ = pipe(
-    setElementContainerSize,
-    prepareData, 
-    setProportions,
-  )({placement: placement, viewAllSvg: viewAllSvg, data: data, widthToHeigthRation: 1/6});
-  viewAllSvg.setAttribute('viewBox', `0 0 ${chart._.viewBoxWidth} ${chart._.viewBoxHeight}`);
+    setContainerSize,
+    prepareData 
+  )({placement: placement, data: data});
 
-  const panViewSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  panViewSvg.setAttributeNS(null, 'x', 0);
-  panViewSvg.setAttributeNS(null, 'y', 0);
-  panViewSvg.setAttributeNS(null, 'width', chart._.viewBoxWidth);
-  panViewSvg.setAttributeNS(null, 'height', chart._.viewBoxWidth);
-  panViewSvg.setAttribute('viewBox', `0 0 ${chart._.viewBoxWidth} ${chart._.viewBoxWidth}`);
-  chart._.panViewSvg = panViewSvg;
+  chart._.viewAllSvg = createSvg('viewAllSvg', 
+    null,
+    {x: 0, y: 0, width: chart._.viewBoxWidth, height: chart._.viewBoxHeight}, 
+    ['border', '1px solid black;']
+  );
+  chart._.panViewSvg = createSvg('panViewSvg', 
+    {x: 0, y: 0, width: chart._.viewBoxWidth, height: chart._.viewBoxWidth}, 
+    {x: 0, y: 0, width: chart._.viewBoxWidth, height: chart._.viewBoxWidth}, 
+    ['border', '1px solid black;']
+  );
 
-  placement.append(panViewSvg);
-  placement.append(viewAllSvg);
+  chart._ = setProportions()
+
+  placement.append(chart._.panViewSvg);
+  placement.append(chart._.viewAllSvg);
   return {
     render: _=> render(chart._)
   }

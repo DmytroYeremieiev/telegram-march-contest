@@ -1,13 +1,13 @@
 import {add as addDraggableSelector} from "./draggableSelector.js"
 import {pipe} from "./common.js"
 
-function renderLine(svg, line, viewBoxHeight, y_coefficient, minValue, stepSize) {
+function renderLine(svg, line, viewBoxHeight, y_step_coefficient, minValue, stepSize) {
   let path = document.createElementNS("http://www.w3.org/2000/svg", 'path'),
       d = '',
       x = 0, y = null;
   for (let j = 0; j < line.data.length; j++) {
     const prefix = j === 0 ? 'M' : 'L';
-    y = viewBoxHeight - (line.data[j] - minValue)*y_coefficient;
+    y = viewBoxHeight - (line.data[j] - minValue)*y_step_coefficient;
     d += prefix + x +','+ y;
     // if (y < 0) {
     //   console.log('j, line.data[j], x, y', j, line.data[j], x, y)
@@ -23,17 +23,24 @@ function renderLine(svg, line, viewBoxHeight, y_coefficient, minValue, stepSize)
 
 function render(_) {
   console.log('_ :', _);
-  Object.values(_.lines).forEach((line)=>renderLine(_.viewAllSvg, line, _.viewBoxHeight, _.y_coefficient, _.minValue , _.x.stepSize));
+  Object.values(_.lines).forEach((line)=>{
+    renderLine(_.viewAllSvg, line, _.viewBoxHeight, _.y_step_coefficient, _.minValue , _.x.stepSize);
+    let panViewSvg_viewBoxHeight = _.viewBoxWidth;
+    let panViewSvg_y_step_coefficient = _.viewBoxWidth / (_.maxValue - _.minValue);
+    let panViewSvg_stepSize = Math.ceil(_.canvasWidth * 4 / (_.x.steps.length - 1));
+
+    renderLine(_.panViewSvg, line, panViewSvg_viewBoxHeight, panViewSvg_y_step_coefficient, _.minValue , panViewSvg_stepSize);
+  });
   addDraggableSelector(_.viewAllSvg, 0.5, 0.2, 0.05).onSelected((x, width)=>{
     console.log('onSelected', x, width)
   });
 }
 
 function setProportions(_) {
-  const {x} = _;
+  const {x, widthToHeigthRation} = _;
   _.viewBoxWidth = x.stepSize * (x.steps.length - 1);
-  _.viewBoxHeight = _.viewBoxWidth / 4;
-  _.y_coefficient = _.viewBoxHeight / (_.maxValue - _.minValue);
+  _.viewBoxHeight = _.viewBoxWidth * widthToHeigthRation;
+  _.y_step_coefficient = _.viewBoxHeight / (_.maxValue - _.minValue);
   return _
 }
 
@@ -79,11 +86,16 @@ function create(placement, config, data){
     setElementContainerSize,
     prepareData, 
     setProportions,
-  )({placement: placement, viewAllSvg: viewAllSvg, data: data});
+  )({placement: placement, viewAllSvg: viewAllSvg, data: data, widthToHeigthRation: 1/6});
   viewAllSvg.setAttribute('viewBox', `0 0 ${chart._.viewBoxWidth} ${chart._.viewBoxHeight}`);
 
   const panViewSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  panViewSvg.setAttributeNS(null, 'x', 0);
+  panViewSvg.setAttributeNS(null, 'y', 0);
+  panViewSvg.setAttributeNS(null, 'width', chart._.viewBoxWidth);
+  panViewSvg.setAttributeNS(null, 'height', chart._.viewBoxWidth);
   panViewSvg.setAttribute('viewBox', `0 0 ${chart._.viewBoxWidth} ${chart._.viewBoxWidth}`);
+  chart._.panViewSvg = panViewSvg;
 
   placement.append(panViewSvg);
   placement.append(viewAllSvg);

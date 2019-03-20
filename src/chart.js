@@ -1,7 +1,7 @@
 import {add as addDraggableSelector} from "./draggableSelector.js"
 import {pipe} from "./common.js"
 
-function renderLine(canvas, line, viewBoxHeight, y_coefficient, minValue, stepSize) {
+function renderLine(svg, line, viewBoxHeight, y_coefficient, minValue, stepSize) {
   let path = document.createElementNS("http://www.w3.org/2000/svg", 'path'),
       d = '',
       x = 0, y = null;
@@ -18,18 +18,18 @@ function renderLine(canvas, line, viewBoxHeight, y_coefficient, minValue, stepSi
   path.setAttribute('stroke', line.color);
   path.setAttribute('name', line.name);
   path.setAttribute('fill', 'none');
-  canvas.appendChild(path);
+  svg.appendChild(path);
 }
 
 function render(_) {
   console.log('_ :', _);
-  Object.values(_.lines).forEach((line)=>renderLine(_.canvas, line, _.viewBoxHeight, _.y_coefficient, _.minValue , _.x.stepSize));
-  addDraggableSelector(_.canvas, 0.5, 0.2, 0.05).onSelected((x, width)=>{
+  Object.values(_.lines).forEach((line)=>renderLine(_.viewAllSvg, line, _.viewBoxHeight, _.y_coefficient, _.minValue , _.x.stepSize));
+  addDraggableSelector(_.viewAllSvg, 0.5, 0.2, 0.05).onSelected((x, width)=>{
     console.log('onSelected', x, width)
   });
 }
 
-function setDimentions(_) {
+function setProportions(_) {
   const {x} = _;
   _.viewBoxWidth = x.stepSize * (x.steps.length - 1);
   _.viewBoxHeight = _.viewBoxWidth / 4;
@@ -62,26 +62,31 @@ function prepareData(_) {
   return _
 }
 
-function setElementInnerSize(_) {
+function setElementContainerSize(_) {
   const props = window.getComputedStyle(_.placement);
   _.canvasWidth = _.placement.clientWidth - parseFloat(props.paddingLeft) - parseFloat(props.paddingRight);
-  _.canvasHeight = _.placement.clientHeight - parseFloat(props.paddingTop) -  parseFloat(props.paddingBottom);
+  // _.canvasHeight = _.placement.clientHeight - parseFloat(props.paddingTop) -  parseFloat(props.paddingBottom);
   return _
 }
 
 function create(placement, config, data){
   const chart = {};
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute('style', 'border: 1px solid black');
-  svg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
+  const viewAllSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  viewAllSvg.setAttribute('style', 'border: 1px solid black');
+  viewAllSvg.setAttributeNS("http://www.w3.org/2000/xmlns/", "xmlns:xlink", "http://www.w3.org/1999/xlink");
   chart.config = config;
   chart._ = pipe(
-    setElementInnerSize,
+    setElementContainerSize,
     prepareData, 
-    setDimentions,
-  )({placement: placement, canvas: svg, data: data});
-  svg.setAttribute('viewBox', `0 0 ${chart._.viewBoxWidth} ${chart._.viewBoxHeight}`);
-  placement.append(svg);
+    setProportions,
+  )({placement: placement, viewAllSvg: viewAllSvg, data: data});
+  viewAllSvg.setAttribute('viewBox', `0 0 ${chart._.viewBoxWidth} ${chart._.viewBoxHeight}`);
+
+  const panViewSvg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
+  panViewSvg.setAttribute('viewBox', `0 0 ${chart._.viewBoxWidth} ${chart._.viewBoxWidth}`);
+
+  placement.append(panViewSvg);
+  placement.append(viewAllSvg);
   return {
     render: _=> render(chart._)
   }

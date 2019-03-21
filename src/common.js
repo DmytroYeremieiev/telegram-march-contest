@@ -24,9 +24,9 @@ export function setViewBox(svg, viewBox) {
   return svg;
 }
 
-export function createSvg(id, styles = []) {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute('id', id || '');
+export function createSvgElem(elemType = 'svg', id = '', styles = []) {
+  const svg = document.createElementNS("http://www.w3.org/2000/svg", elemType);
+  svg.setAttribute('id', id);
   svg.setAttribute('style', styles.join(''));
   return svg;
 }

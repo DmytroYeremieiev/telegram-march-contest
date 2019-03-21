@@ -1,8 +1,8 @@
 import {add as addDraggableSelector} from "./draggableSelector.js"
-import {pipe, createSvg, setViewBox, setViewPort} from "./common.js"
+import {pipe, createSvgElem, setViewBox, setViewPort} from "./common.js"
 
 function renderLine(chart, line, minValue) {
-  let path = document.createElementNS("http://www.w3.org/2000/svg", 'path'),
+  let path = createSvgElem('path', line.name),
       {y_step_coefficient, x_step_size, viewBox} = chart,
       d = '',
       x = 0, y = null;
@@ -17,7 +17,6 @@ function renderLine(chart, line, minValue) {
   }
   path.setAttribute('d', d);
   path.setAttribute('stroke', line.color);
-  path.setAttribute('name', line.name);
   path.setAttribute('fill', 'none');
   chart.svg.appendChild(path);
 }
@@ -84,7 +83,7 @@ function setContainerSize(_) {
 }
 
 function createChart(id, styles) {
-  let svg = createSvg(id, styles);
+  let svg = createSvgElem('svg', id, styles);
   return {
     svg: svg,
     viewPort: null,

@@ -1,10 +1,7 @@
-import {pipe, createSvg, setViewBox, setViewPort, setAttr} from "./common.js"
-
+import {pipe, createSvgElem, setViewBox, setViewPort, setAttr} from "./common.js"
 
 function createRect(id, styles) {
-  let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
-  rect.setAttributeNS(null, 'id', id);
-  rect.setAttributeNS(null, 'style', styles.join(''));
+  let rect = createSvgElem('rect', id, styles)
   return {
     setRectDimentions: function(x, y, width, height){
       setViewPort(rect, {x, y, width, height});
@@ -27,7 +24,6 @@ function getXPosition(evt, svg) {
 }
 
 function startDrag(evt, draggable) {
-  // console.log('startDrag: ', draggable);
   draggable.selected = evt.target.id;
   draggable.x = getXPosition(evt, draggable.svg);
   draggable.el_x = parseFloat(evt.target.parentNode.getAttributeNS(null, 'x'));
@@ -45,7 +41,6 @@ function drag(evt, draggable) {
   draggable.onPositionChange(evt, draggable);
 }
 function endDrag(evt, draggable) {
-  // console.log('endDrag: ', draggable);
   draggable.selected = false;
 }
 
@@ -55,7 +50,6 @@ function makeDraggable(svg, onPositionChange) {
     selected: false,
     onPositionChange
   };
-
   svg.addEventListener('mousedown', evt=> startDrag(evt, draggable), false);
   svg.addEventListener('mousemove', evt=> drag(evt, draggable), false);
   svg.addEventListener('mouseup', evt=> endDrag(evt, draggable), false);
@@ -69,18 +63,28 @@ export function add(placement, relativePosition, relativeSelectorSize, relativeS
       width = bBox.width*relativeSelectorSize,
       sideRailSize = getSideRailSize(relativeSideRailSize, relativeSelectorSize),
       centerRect, leftRect, rightRect, 
+      styles = ['opacity:','0.2;'],
       onSelected;
 
   selector = pipe(
     _=> setViewPort(_, {x, width}),
     _=> setViewBox(_, bBox),
     _=> setAttr(_, 'preserveAspectRatio', 'none')
-  )(createSvg('selector', ['overflow:', 'visible;']));
+  )(createSvgElem('svg', 'selector', ['overflow:', 'visible;']));
 
-  centerRect = createRect('centerRect', ['opacity:','0.2;']).setRectDimentions(0, 0, '100%', bBox.height).appendTo(selector);
-  leftRect = createRect('leftRect', ['opacity:','0.2;']).setRectDimentions(0, 0, `${sideRailSize}%`, bBox.height).appendTo(selector);
-  rightRect = createRect('rightRect', ['opacity:','0.2;']).setRectDimentions(`${100 - sideRailSize}%`, 0, `${sideRailSize}%`, bBox.height).appendTo(selector);
-  
+  centerRect = pipe(
+    _=> setViewPort(_, {x: 0, y: 0, width: '100%', height: bBox.height}),
+    _=> selector.appendChild(_)
+  )(createSvgElem('rect', 'centerRect', styles));
+  leftRect = pipe(
+    _=> setViewPort(_, {x: 0, y: 0, width: `${sideRailSize}%`, height: bBox.height}),
+    _=> selector.appendChild(_)
+  )(createSvgElem('rect', 'leftRect', styles));
+  rightRect = pipe(
+    _=> setViewPort(_, {x: `${100 - sideRailSize}%`, y: 0, width: `${sideRailSize}%`, height: bBox.height}),
+    _=> selector.appendChild(_)
+  )(createSvgElem('rect', 'rightRect', styles));
+
   makeDraggable(placement, (evt, draggable)=>{
     let {selected, x, new_x, el_x, new_el_x, el_width, new_el_width} = draggable, 
         sideRailSize;
@@ -125,10 +129,9 @@ export function add(placement, relativePosition, relativeSelectorSize, relativeS
     }
     setAttr(selector, 'x', new_el_x);
     setAttr(selector, 'width', new_el_width);
-
     sideRailSize = getSideRailSize(relativeSideRailSize, new_el_width/bBox.width);
-    leftRect.setRectDimentions(0, 0, `${sideRailSize}%`, bBox.height);
-    rightRect.setRectDimentions(`${100 - sideRailSize}%`, 0, `${sideRailSize}%`, bBox.height);
+    setViewPort(leftRect, {x: 0, y: 0, width: `${sideRailSize}%`, height: bBox.height});
+    setViewPort(rightRect, {x: `${100 - sideRailSize}%`, y: 0, width: `${sideRailSize}%`, height: bBox.height});
     if (onSelected){
       onSelected(new_el_x, new_el_width);
     }

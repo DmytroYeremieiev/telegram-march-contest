@@ -2,7 +2,6 @@ export function pipe(...fns) {
   return x => fns.reduce((v, f) => f(v), x);
 }
 
-
 export function setViewPort(svg, viewPort) {
   if (viewPort.x != null){
     svg.setAttributeNS(null, 'x', viewPort.x);

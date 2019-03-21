@@ -1,19 +1,5 @@
 import {pipe, createSvgElem, setViewBox, setViewPort, setAttr} from "./common.js"
 
-function createRect(id, styles) {
-  let rect = createSvgElem('rect', id, styles)
-  return {
-    setRectDimentions: function(x, y, width, height){
-      setViewPort(rect, {x, y, width, height});
-      return this;
-    },
-    appendTo: function (svg) {
-      svg.appendChild(rect);
-      return this;
-    }
-  };
-}
-
 function getSideRailSize(relativeSideRailSize, relativeSelectorSize) {
   return +parseFloat(relativeSideRailSize*100 / relativeSelectorSize).toPrecision(3);
 }

@@ -27,7 +27,7 @@ function render(_) {
     renderLine(_.viewAllChart, line, _.minValue);
     renderLine(_.panViewChart, line, _.minValue);
   });
-  addDraggableSelector(_.viewAllChart.svg, 0.5, 0.2, 0.05).onSelected((x, width)=>{
+  addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.05).onSelected((x, width)=>{
     console.log('onSelected', x, width);
     setViewBox(_.panViewChart.svg, {})
     

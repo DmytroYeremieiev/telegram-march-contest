@@ -42,12 +42,12 @@ function makeDraggable(svg, onPositionChange) {
   svg.addEventListener('mouseleave', evt=> endDrag(evt, draggable));
 }
 
-export function add(placement, relativePosition, relativeSelectorSize, relativeSideRailSize) {
+export function add(placement, relativePosition, selectorSize, relativeSideRailSize) {
   let selector = null,
       bBox = placement.getBBox(),
       x = bBox.width*relativePosition,
-      width = bBox.width*relativeSelectorSize,
-      sideRailSize = getSideRailSize(relativeSideRailSize, relativeSelectorSize),
+      width = selectorSize,
+      sideRailSize = getSideRailSize(relativeSideRailSize, width/bBox.width),
       centerRect, leftRect, rightRect, 
       styles = ['opacity:','0.2;'],
       onSelected;

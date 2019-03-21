@@ -8,7 +8,7 @@ import chart from './chart.js';
 
 
   let config = {
-    // gridSize: 20
+    // ratio: 1/6
   } 
   chart.create(document.getElementById('main-canvas'), config, chart_data[1]).render();
 })()

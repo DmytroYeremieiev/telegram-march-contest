@@ -30,10 +30,8 @@ function render(_) {
   addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025).onSelected((x, width)=>{
     console.log('onSelected', x, width, x*_.panViewChart.x_step_ratio, width*_.panViewChart.x_step_ratio);
     setViewBox(_.panViewChart.svg, {x: x*_.panViewChart.x_step_ratio, width: width*_.panViewChart.x_step_ratio})
-    
   });
-  // setViewBox(_.panViewChart.svg, {x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_to_y_ratio, width: _.viewAllChart.viewBox.height*_.panViewChart.x_to_y_ratio})
-
+  setViewBox(_.panViewChart.svg, {x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_step_ratio, width: _.viewAllChart.viewBox.height*_.panViewChart.x_step_ratio});
 }
 function getProportions(x_steps, containerWidth, minValue, maxValue, x_to_y_ratio, x_step_ratio) {
   let viewBoxWidth, viewBoxHeight, y_step_coefficient, x_step_size;

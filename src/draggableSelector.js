@@ -1,10 +1,13 @@
+import {pipe, createSvg, setViewBox, setViewPort, setAttr} from "./common.js"
+
+
 function createRect(id, styles) {
   let rect = document.createElementNS('http://www.w3.org/2000/svg', 'rect');
   rect.setAttributeNS(null, 'id', id);
   rect.setAttributeNS(null, 'style', styles.join(''));
   return {
-    setRectDimentions: function(...params){
-      setRectDimentions(rect, ...params);
+    setRectDimentions: function(x, y, width, height){
+      setViewPort(rect, {x, y, width, height});
       return this;
     },
     appendTo: function (svg) {
@@ -12,14 +15,6 @@ function createRect(id, styles) {
       return this;
     }
   };
-}
-
-function setRectDimentions(rect, x, y, width, height) {
-  rect.setAttributeNS(null, 'x', x);
-  rect.setAttributeNS(null, 'y', y);
-  rect.setAttributeNS(null, 'width', width);
-  rect.setAttributeNS(null, 'height', height);
-  return rect;
 }
 
 function getSideRailSize(relativeSideRailSize, relativeSelectorSize) {
@@ -68,7 +63,7 @@ function makeDraggable(svg, onPositionChange) {
 }
 
 export function add(placement, relativePosition, relativeSelectorSize, relativeSideRailSize) {
-  let selector = document.createElementNS('http://www.w3.org/2000/svg', 'svg'),
+  let selector = null,
       bBox = placement.getBBox(),
       x = bBox.width*relativePosition,
       width = bBox.width*relativeSelectorSize,
@@ -76,12 +71,11 @@ export function add(placement, relativePosition, relativeSelectorSize, relativeS
       centerRect, leftRect, rightRect, 
       onSelected;
 
-  selector.setAttributeNS(null, 'viewBox', `${bBox.x} ${bBox.y} ${bBox.width} ${bBox.height}`);
-  selector.setAttributeNS(null, 'preserveAspectRatio', 'none');
-
-  selector.setAttributeNS(null, 'x', x);
-  selector.setAttributeNS(null, 'width', width);
-  selector.setAttributeNS(null, 'style', ['overflow:', 'visible;'].join(''));
+  selector = pipe(
+    _=> setViewPort(_, {x, width}),
+    _=> setViewBox(_, bBox),
+    _=> setAttr(_, 'preserveAspectRatio', 'none')
+  )(createSvg('selector', ['overflow:', 'visible;']));
 
   centerRect = createRect('centerRect', ['opacity:','0.2;']).setRectDimentions(0, 0, '100%', bBox.height).appendTo(selector);
   leftRect = createRect('leftRect', ['opacity:','0.2;']).setRectDimentions(0, 0, `${sideRailSize}%`, bBox.height).appendTo(selector);
@@ -129,8 +123,8 @@ export function add(placement, relativePosition, relativeSelectorSize, relativeS
         new_el_x = bBox.width - new_el_width;
       }
     }
-    selector.setAttributeNS(null, 'x', new_el_x);
-    selector.setAttributeNS(null, 'width', new_el_width);
+    setAttr(selector, 'x', new_el_x);
+    setAttr(selector, 'width', new_el_width);
 
     sideRailSize = getSideRailSize(relativeSideRailSize, new_el_width/bBox.width);
     leftRect.setRectDimentions(0, 0, `${sideRailSize}%`, bBox.height);

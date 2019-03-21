@@ -1,5 +1,5 @@
 import {add as addDraggableSelector} from "./draggableSelector.js"
-import {pipe} from "./common.js"
+import {pipe, createSvg, setViewBox, setViewPort} from "./common.js"
 
 function renderLine(chart, line, minValue) {
   let path = document.createElementNS("http://www.w3.org/2000/svg", 'path'),
@@ -83,34 +83,6 @@ function setContainerSize(_) {
   return _
 }
 
-function setViewPort(svg, viewPort) {
-  if (isFinite(parseFloat(viewPort.x))){
-    svg.setAttributeNS(null, 'x', viewPort.x);
-  }
-  if (isFinite(parseFloat(viewPort.y))){
-    svg.setAttributeNS(null, 'y', viewPort.y);
-  }
-  if (isFinite(parseFloat(viewPort.width))){
-    svg.setAttributeNS(null, 'width', viewPort.width);
-  }
-  if (isFinite(parseFloat(viewPort.height))) {
-    svg.setAttributeNS(null, 'height', viewPort.height );
-  }
-  return svg;
-}
-
-function setViewBox(svg, viewBox) {
-  svg.setAttributeNS(null, 'viewBox', `${viewBox.x || 0} ${viewBox.y || 0} ${viewBox.width || 0} ${viewBox.height || 0}`);
-  return svg;
-}
-
-function createSvg(id, styles = []) {
-  const svg = document.createElementNS("http://www.w3.org/2000/svg", "svg");
-  svg.setAttribute('id', id || '');
-  svg.setAttribute('style', styles.join(''));
-  return svg;
-}
-
 function createChart(id, styles) {
   let svg = createSvg(id, styles);
   return {
@@ -129,7 +101,6 @@ function createChart(id, styles) {
     }
   };
 }
-
 
 function create(placement, config, data){
   const chart = {};

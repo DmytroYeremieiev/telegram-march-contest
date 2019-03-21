@@ -20,7 +20,12 @@ export function setViewPort(svg, viewPort) {
 
 export function setViewBox(svg, viewBox) {
   let [x,y,width, height] = (svg.getAttributeNS(null, 'viewBox') || "0 0 0 0").split(' ');
-  svg.setAttributeNS(null, 'viewBox', `${viewBox.x || x} ${viewBox.y || y} ${viewBox.width || width} ${viewBox.height || height}`);
+  x = viewBox.x != null ? viewBox.x : x;
+  y = viewBox.y != null ? viewBox.y : y;
+  width = viewBox.width != null ? viewBox.width : width;
+  height = viewBox.height != null ? viewBox.height : height;
+
+  svg.setAttributeNS(null, 'viewBox', `${x} ${y} ${width} ${height}`);
   return svg;
 }
 

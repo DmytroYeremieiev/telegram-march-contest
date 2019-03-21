@@ -10,6 +10,7 @@ function getXPosition(evt, svg) {
 }
 
 function startDrag(evt, draggable) {
+  console.log('startDrag', draggable);
   draggable.selected = evt.target.id;
   draggable.x = getXPosition(evt, draggable.svg);
   draggable.el_x = parseFloat(evt.target.parentNode.getAttributeNS(null, 'x'));
@@ -18,7 +19,7 @@ function startDrag(evt, draggable) {
   // draggable.x1_offset = draggable.el_x + draggable.el_width - draggable.x;
 }
 function drag(evt, draggable) {
-  if(!draggable.selected){
+  if(!draggable.selected || isNaN(draggable.x0_offset)){
     return;
   }
   evt.preventDefault();
@@ -27,6 +28,7 @@ function drag(evt, draggable) {
   draggable.onPositionChange(evt, draggable);
 }
 function endDrag(evt, draggable) {
+  console.log('endDrag', draggable);
   draggable.selected = false;
 }
 

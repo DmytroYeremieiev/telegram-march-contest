@@ -28,29 +28,27 @@ function render(_) {
     renderLine(_.panViewChart, line, _.minValue);
   });
   addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025).onSelected((x, width)=>{
-    console.log('onSelected', x, width);
-    setViewBox(_.panViewChart.svg, {x, width})
+    console.log('onSelected', x, width, x*_.panViewChart.x_step_ratio, width*_.panViewChart.x_step_ratio);
+    setViewBox(_.panViewChart.svg, {x: x*_.panViewChart.x_step_ratio, width: width*_.panViewChart.x_step_ratio})
     
   });
-}
-// * 6
-// * 1 
+  // setViewBox(_.panViewChart.svg, {x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_to_y_ratio, width: _.viewAllChart.viewBox.height*_.panViewChart.x_to_y_ratio})
 
-//  * 1 
-//  * 6
-function getProportions(x_steps, containerWidth, minValue, maxValue, x_to_y_ratio, y_to_x_ratio) {
+}
+function getProportions(x_steps, containerWidth, minValue, maxValue, x_to_y_ratio, x_step_ratio) {
   let viewBoxWidth, viewBoxHeight, y_step_coefficient, x_step_size;
-  x_step_size = Math.ceil(containerWidth * x_to_y_ratio / (x_steps.length - 1));
-  viewBoxWidth = x_step_size * (x_steps.length - 1);
-  viewBoxHeight = viewBoxWidth * y_to_x_ratio;
+  viewBoxWidth = containerWidth;
+  viewBoxHeight = containerWidth * x_to_y_ratio;
+
+  x_step_size = +parseFloat(viewBoxWidth * x_step_ratio / (x_steps.length - 1)).toPrecision(6);
   y_step_coefficient = viewBoxHeight / (maxValue - minValue);
 
   return {
     viewBox: {x: 0, y: 0, width: viewBoxWidth, height: viewBoxHeight},
     x_step_size,
     y_step_coefficient,
-    x_to_y_ratio,
-    y_to_x_ratio
+    x_to_y_ratio, 
+    x_step_ratio
   };
 }
 
@@ -115,14 +113,14 @@ function create(placement, config, data){
 
   chart._.panViewChart = Object.assign( 
     createChart('createChart', ['border:', '1px solid black;'] ), 
-    getProportions(chart._.x.steps, chart._.containerWidth, chart._.minValue, chart._.maxValue, 6, 1/6)
+    getProportions(chart._.x.steps, chart._.containerWidth, chart._.minValue, chart._.maxValue, 1, 6)
   );
   chart._.panViewChart.setViewPort(chart._.panViewChart.viewBox);
   chart._.panViewChart.setViewBox();
 
   chart._.viewAllChart = Object.assign(
     createChart('createChart', ['border:', '1px solid black;'] ), 
-    getProportions(chart._.x.steps, chart._.containerWidth, chart._.minValue, chart._.maxValue, 1, 1/6)
+    getProportions(chart._.x.steps, chart._.containerWidth, chart._.minValue, chart._.maxValue, 1/6, 1)
   );
   chart._.viewAllChart.setViewBox();
 

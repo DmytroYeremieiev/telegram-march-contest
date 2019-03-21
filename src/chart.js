@@ -25,15 +25,12 @@ function render(_) {
   console.log('_ :', _);
   Object.values(_.lines).forEach((line)=>{
     renderLine(_.viewAllChart, line, _.minValue);
-    // renderLine(_.panViewSvg.svg, line, _.panViewSvg.viewBox.height,  _.panViewSvg.y_step_coefficient, _.minValue , _.x.stepSize * 6);
-    // let panViewSvg_viewBoxHeight = _.viewBoxWidth;
-    // let panViewSvg_y_step_coefficient = _.viewBoxWidth / (_.maxValue - _.minValue);
-    // let panViewSvg_stepSize = Math.ceil(_.containerWidth * 4 / (_.x.steps.length - 1));
-
-    // renderLine(_.panViewSvg, line, panViewSvg_viewBoxHeight, panViewSvg_y_step_coefficient, _.minValue , panViewSvg_stepSize);
+    renderLine(_.panViewChart, line, _.minValue);
   });
   addDraggableSelector(_.viewAllChart.svg, 0.5, 0.2, 0.05).onSelected((x, width)=>{
-    console.log('onSelected', x, width)
+    console.log('onSelected', x, width);
+    setViewBox(_.panViewChart.svg, {})
+    
   });
 }
 

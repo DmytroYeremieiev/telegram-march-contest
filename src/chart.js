@@ -1,5 +1,5 @@
 import {add as addDraggableSelector} from "./draggableSelector.js"
-import {pipe, createSvgElem, setViewBox, setViewPort} from "./common.js"
+import {pipe, createSvgElem, setViewBox, setViewPort, setAttr} from "./common.js"
 
 function renderLine(chart, line, minValue) {
   let path = createSvgElem('path', line.name),
@@ -108,7 +108,8 @@ function create(placement, config, data){
   )({placement: placement, data: data});
 
   chart._.panViewChart = createChart('createChart', ['border:', '1px solid black;'], panViewChartSidesRatio);
-  chart._.panViewChart.setViewPort({width: chart._.containerWidth, height: chart._.containerWidth * panViewChartSidesRatio});
+  setAttr(chart._.panViewChart.svg, "preserveAspectRatio", "none");
+  chart._.panViewChart.setViewPort({x: 0, y: 0, width: chart._.containerWidth, height: chart._.containerWidth * panViewChartSidesRatio});
   chart._.panViewChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth});
   Object.assign(chart._.panViewChart, getProportions(chart._.x.steps, chart._.panViewChart.viewBox, chart._.minValue, chart._.maxValue, 1/viewAllChartSidesRatio));
 

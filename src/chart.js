@@ -1,6 +1,6 @@
 import {add as addDraggableSelector} from "./draggableSelector.js"
 import {add as addCheckbox} from "./checkbox.js"
-import {pipe, createSvgElem, setViewBox, setViewPort, setAttr} from "./common.js"
+import {pipe, createSvgElem, setViewBox, setViewPort, setAttr, setAttrs} from "./common.js"
 
 function renderLine(chart, line) {
   let path = createSvgElem('path', line.name),
@@ -16,9 +16,7 @@ function renderLine(chart, line) {
     // }
     x += x_step_size;
   }
-  path.setAttribute('d', d);
-  path.setAttribute('stroke', line.color);
-  path.setAttribute('fill', 'none');
+  setAttrs(path, [['d',d],['stroke',line.color],['fill','none']])
   chart.lines[line.name] = {};
   chart.lines[line.name].path = path;
   chart.lines[line.name].path = path;
@@ -30,12 +28,11 @@ function showLine(line, show) {
   show ? line.classList.remove('hide') : line.classList.add('hide');
 }
 
-function scaleGroup(linesGroup, linesData, maxValue, height) {
+function scaleGroup(linesGroup, newTotalData, maxValue, height) {
   let newMax, 
       deltaRatio,
       Y_translate_size, Y_scale_coef,
       transform = '';
-  let newTotalData = linesData.filter((l)=>l.checked).reduce((s, n)=> s.concat(n.data), []);
   if (newTotalData.length === 0) {
     // linesGroup.removeAttributeNS(null, 'transform');
     setAttr(linesGroup, 'transform',  `matrix(1 0 0 1 0 ${-height*2})`);
@@ -43,13 +40,13 @@ function scaleGroup(linesGroup, linesData, maxValue, height) {
   }
   newMax = Math.max.apply(null, newTotalData);
   deltaRatio = newMax / maxValue;
-  Y_scale_coef = 1 / 1 / deltaRatio;
+  Y_scale_coef = 1 / deltaRatio;
   Y_translate_size = height * deltaRatio - height;
   console.log(`deltaRatio: ${deltaRatio}, height: ${height}, Y_translate_size: ${Y_translate_size}, Y_scale_coef: ${Y_scale_coef}`);
-  transform += `scale(1 ${Y_scale_coef})`
+  transform += `scale(1 ${Y_scale_coef})`;
   let matrix = [
     1, 0, 0, Y_scale_coef, 0, (newMax !== maxValue?Y_translate_size*Y_scale_coef:0),
-  ]
+  ];
   if(newMax !== maxValue){
     transform += ` translate(0, ${Y_translate_size})`
   }
@@ -66,6 +63,14 @@ function mapViewBoxToDataIndex(x, width, x_step_size) {
   }
 }
 
+function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
+  let {start, amount} = mapViewBoxToDataIndex(x*x_step_coefficient, width*x_step_coefficient, x_step_size);
+  return Object.values(lines)
+    .filter((l)=>l.checked)
+    .map((l)=>l.data.slice(start, start+amount))
+    .reduce((s, n)=> s.concat(n), []);
+}
+
 function render(_) {
   console.log('_ :', _);
   Object.values(_.lines).forEach((line)=>{
@@ -75,17 +80,29 @@ function render(_) {
     addCheckbox(_.placement, line.color, line.name, line.checked, (checked)=>{
       line.checked = checked;
       showLine(_.panViewChart.lines[line.name].path, checked);
-      scaleGroup(_.panViewChart.group, Object.values(_.lines), _.maxValue, _.panViewChart.viewBox.height);
+      let data = Object.values(_.lines).filter((l)=>l.checked).reduce((s, n)=> s.concat(n.data), []);
+      scaleGroup(_.panViewChart.group, data, _.maxValue, _.panViewChart.viewBox.height);
     });
   });
+  let timer = null;
   addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025)
     .onDrag((x, width)=>{
       console.log('onDrag', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
       _.panViewChart.setViewBox({x: x*_.panViewChart.x_step_coefficient, width: width*_.panViewChart.x_step_coefficient});
-      console.log('mapViewBoxToDataIndex()', mapViewBoxToDataIndex(x*_.viewAllChart.x_step_coefficient, width*_.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size))
+      if(timer) return;
+      timer = setTimeout(()=> {
+        timer = null;
+        let data = getTotalDataInRange(x, width, _.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size, _.lines);
+        scaleGroup(_.panViewChart.group, data, _.maxValue, _.panViewChart.viewBox.height);
+      }, 100)
+
     })
     .onDragEnd((x, width)=>{
-      console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
+      clearTimeout(timer);
+      timer = null;
+      let data = getTotalDataInRange(x, width, _.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size, _.lines);
+      scaleGroup(_.panViewChart.group, data, _.maxValue, _.panViewChart.viewBox.height);
+      // console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
     });
   _.panViewChart.setViewBox({x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_step_coefficient, width: _.viewAllChart.viewBox.height*_.panViewChart.x_step_coefficient});
 }

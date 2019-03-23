@@ -1,4 +1,5 @@
 import {add as addDraggableSelector} from "./draggableSelector.js"
+import {add as addCheckbox} from "./checkbox.js"
 import {pipe, createSvgElem, setViewBox, setViewPort, setAttr} from "./common.js"
 
 function renderLine(chart, line, minValue) {
@@ -26,6 +27,9 @@ function render(_) {
   Object.values(_.lines).forEach((line)=>{
     renderLine(_.viewAllChart, line, _.minValue);
     renderLine(_.panViewChart, line, _.minValue);
+    addCheckbox(_.placement, line.color, line.name, true, (checked)=>{
+      console.log(`${line.name} checked`, checked);
+    });
   });
   addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025).onSelected((x, width)=>{
     console.log('onSelected', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);

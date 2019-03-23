@@ -3,6 +3,21 @@
   height: 600px;
 
 }
-svg path {
+/* svg path {
   transition: 0.1s linear;
+} */
+.checkbox {
+  width: 120px;
+}
+
+.checkbox .checkmark {
+  stroke-width: 2;
+  stroke: white;
+}
+
+.checkbox .checkmark__circle {
+  stroke: #7ac142;
+}
+.checkbox.checked .checkmark__circle{
+  fill: #7ac142;
 }

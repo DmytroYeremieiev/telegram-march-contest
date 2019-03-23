@@ -40,3 +40,8 @@ export function setAttr(svg, name, value) {
   svg.setAttributeNS(null, name, value);
   return svg;
 }
+
+export function setAttrs(svg, attrs) {
+  attrs.forEach((attr)=>setAttr(svg, attr[0], attr[1]));
+  return svg;
+}

@@ -33,7 +33,7 @@ export function add(placement, color, label, checked, onChangeCallback){
 
   svg.addEventListener('click', ()=>{
     (checked = !checked) ? svg.classList.add('checked') : svg.classList.remove('checked');
-    onChangeCallback(label, checked)
+    onChangeCallback(checked)
   });
   placement.appendChild(svg);
 }

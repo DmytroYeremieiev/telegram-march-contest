@@ -19,7 +19,13 @@ function renderLine(chart, line, minValue) {
   path.setAttribute('d', d);
   path.setAttribute('stroke', line.color);
   path.setAttribute('fill', 'none');
+  chart.lines = chart.lines || {};
+  chart.lines[line.name] = path;
   chart.svg.appendChild(path);
+}
+
+function showLine(line, show) {
+  show ? line.classList.remove('hide') : line.classList.add('hide');
 }
 
 function render(_) {
@@ -29,6 +35,7 @@ function render(_) {
     renderLine(_.panViewChart, line, _.minValue);
     addCheckbox(_.placement, line.color, line.name, true, (checked)=>{
       console.log(`${line.name} checked`, checked);
+      showLine(_.panViewChart.lines[line.name], checked);
     });
   });
   addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025).onSelected((x, width)=>{

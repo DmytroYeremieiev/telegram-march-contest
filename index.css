@@ -6,6 +6,12 @@
 /* svg path {
   transition: 0.1s linear;
 } */
+.show {
+  visibility: visible;
+}
+.hide {
+  visibility: hidden;
+}
 .checkbox {
   width: 120px;
 }

@@ -10,7 +10,7 @@ function getXPosition(evt, svg) {
 }
 
 function startDrag(evt, draggable) {
-  console.log('startDrag', draggable);
+  // console.log('startDrag', draggable);
   draggable.selected = evt.target.id;
   draggable.x = getXPosition(evt, draggable.svg);
   draggable.el_x = parseFloat(evt.target.parentNode.getAttributeNS(null, 'x'));
@@ -28,7 +28,7 @@ function drag(evt, draggable) {
   draggable.onPositionChange(evt, draggable);
 }
 function endDrag(evt, draggable) {
-  console.log('endDrag', draggable);
+  // console.log('endDrag', draggable);
   draggable.selected = false;
 }
 

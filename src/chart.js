@@ -38,7 +38,8 @@ function scaleGroup(linesGroup, linesData, minValue, maxValue, height) {
       transform = '';
   let newTotalData = linesData.filter((l)=>l.checked).reduce((s, n)=> s.concat(n.data), []);
   if (newTotalData.length === 0) {
-    linesGroup.removeAttributeNS(null, 'transform')
+    // linesGroup.removeAttributeNS(null, 'transform');
+    setAttr(linesGroup, 'transform',  `matrix(1 0 0 1 0 ${-height*2})`);
     return;
   }
   newMin = Math.min.apply(null, newTotalData);
@@ -56,8 +57,8 @@ function scaleGroup(linesGroup, linesData, minValue, maxValue, height) {
     transform += ` translate(0, ${Y_translate_size})`
   }
   console.log('.... ', transform, matrix);
-  // setAttr(linesGroup, 'transform',  `matrix(${matrix.join(' ')})`);
-  setAttr(linesGroup, 'transform',  transform);
+  setAttr(linesGroup, 'transform',  `matrix(${matrix.join(' ')})`);
+  // setAttr(linesGroup, 'transform',  transform);
 }
 
 function render(_) {

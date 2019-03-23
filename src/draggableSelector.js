@@ -29,8 +29,8 @@ function drag(evt, draggable) {
 }
 function endDrag(evt, draggable) {
   // console.log('endDrag', draggable);
+  if(draggable.selected) draggable.onDragEnd(evt, draggable);
   draggable.selected = false;
-  draggable.onDragEnd(evt, draggable);
 }
 
 function makeDraggable(svg, onDrag, onDragEnd) {
@@ -117,6 +117,8 @@ export function add(placement, relativePosition, selectorWidth, relativeSideRail
         new_el_x = bBox.width - new_el_width;
       }
     }
+    draggable.new_el_x = new_el_x;
+    draggable.new_el_width = new_el_width;
     setAttr(selector, 'x', new_el_x);
     setAttr(selector, 'width', new_el_width);
     sideRailSize = getSideRailSize(relativeSideRailSize, new_el_width/bBox.width);

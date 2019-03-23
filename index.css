@@ -3,9 +3,9 @@
   height: 600px;
 
 }
-/* svg path {
-  transition: 0.1s linear;
-} */
+svg g {
+  transition: scale 0.4s linear, transform 0.4s linear;
+}
 .show {
   visibility: visible;
 }

@@ -34,7 +34,8 @@ function scaleGroup(linesGroup, linesData, minValue, maxValue, height) {
   let newMin, newMax, newDelta, 
       prevDelta = maxValue - minValue,
       deltaRatio,
-      Y_translate_size, Y_scale_coef;
+      Y_translate_size, Y_scale_coef,
+      transform = '';
   let newTotalData = linesData.filter((l)=>l.checked).reduce((s, n)=> s.concat(n.data), []);
   newMin = Math.min.apply(null, newTotalData);
   newMax = Math.max.apply(null, newTotalData);
@@ -43,7 +44,10 @@ function scaleGroup(linesGroup, linesData, minValue, maxValue, height) {
   Y_scale_coef = 1 / 1 / deltaRatio;
   Y_translate_size = height * deltaRatio - height;
   console.log(`deltaRatio: ${deltaRatio}, height: ${height}, Y_translate_size: ${Y_translate_size}, Y_scale_coef: ${Y_scale_coef}`);
-  let transform = `scale(1 ${Y_scale_coef}) translate(0, ${Y_translate_size})`; 
+  transform += `scale(1 ${Y_scale_coef})`
+  if(newMax !== maxValue){
+    transform += `translate(0, ${Y_translate_size})`
+  }
   console.log('.... ', transform);
   setAttr(linesGroup, 'transform', transform);
 }

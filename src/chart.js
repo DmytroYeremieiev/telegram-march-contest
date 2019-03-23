@@ -65,16 +65,19 @@ function render(_) {
     renderLine(_.panViewChart, line);
     line.checked = true;
     addCheckbox(_.placement, line.color, line.name, line.checked, (checked)=>{
-      // console.log(`${line.name} checked`, checked);
       line.checked = checked;
       showLine(_.panViewChart.lines[line.name].path, checked);
       scaleGroup(_.panViewChart.group, Object.values(_.lines), _.maxValue, _.panViewChart.viewBox.height);
     });
   });
-  addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025).onSelected((x, width)=>{
-    // console.log('onSelected', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
-    _.panViewChart.setViewBox({x: x*_.panViewChart.x_step_coefficient, width: width*_.panViewChart.x_step_coefficient})
-  });
+  addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025)
+    .onDrag((x, width)=>{
+      console.log('onDrag', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
+      _.panViewChart.setViewBox({x: x*_.panViewChart.x_step_coefficient, width: width*_.panViewChart.x_step_coefficient})
+    })
+    .onDragEnd((x, width)=>{
+      console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
+    });
   _.panViewChart.setViewBox({x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_step_coefficient, width: _.viewAllChart.viewBox.height*_.panViewChart.x_step_coefficient});
 }
 function getProportions(x_steps, viewBox, maxValue, x_step_coefficient) {

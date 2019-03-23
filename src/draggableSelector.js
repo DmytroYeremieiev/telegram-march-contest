@@ -25,18 +25,19 @@ function drag(evt, draggable) {
   evt.preventDefault();
   draggable.new_x = getXPosition(evt, draggable.svg);
   draggable.new_el_x = draggable.new_x - draggable.x0_offset;
-  draggable.onPositionChange(evt, draggable);
+  draggable.onDrag(evt, draggable);
 }
 function endDrag(evt, draggable) {
   // console.log('endDrag', draggable);
   draggable.selected = false;
+  draggable.onDragEnd(evt, draggable);
 }
 
-function makeDraggable(svg, onPositionChange) {
+function makeDraggable(svg, onDrag, onDragEnd) {
   let draggable = {
     svg: svg,
     selected: false,
-    onPositionChange
+    onDrag, onDragEnd
   };
   svg.addEventListener('mousedown', evt=> startDrag(evt, draggable), false);
   svg.addEventListener('mousemove', evt=> drag(evt, draggable), false);
@@ -53,7 +54,7 @@ export function add(placement, relativePosition, selectorWidth, relativeSideRail
       sideRailSize = getSideRailSize(relativeSideRailSize, relativeSelectorWidth),
       centerRect, leftRect, rightRect, 
       styles = ['opacity:','0.2;'],
-      onSelected;
+      onDrag, onDragEnd;
 
   selector = pipe(
     _=> setViewPort(_, {x, width}),
@@ -121,14 +122,22 @@ export function add(placement, relativePosition, selectorWidth, relativeSideRail
     sideRailSize = getSideRailSize(relativeSideRailSize, new_el_width/bBox.width);
     setViewPort(leftRect, {x: 0, y: 0, width: `${sideRailSize}%`, height: bBox.height});
     setViewPort(rightRect, {x: `${100 - sideRailSize}%`, y: 0, width: `${sideRailSize}%`, height: bBox.height});
-    if (onSelected){
-      onSelected(new_el_x, new_el_width);
-    }
+    if (onDrag) onDrag(new_el_x, new_el_width);
+  }, 
+  (evt, draggable)=>{
+    if (onDrag) onDragEnd(draggable.new_el_x, draggable.new_el_width);
   });
   placement.appendChild(selector);
   
   return {
     element: selector,
-    onSelected: (fn)=> onSelected = fn
+    onDrag: function(fn) {
+      onDrag = fn;
+      return this;
+    },
+    onDragEnd: function(fn) {
+      onDragEnd = fn;
+      return this;
+    }
   }
 }

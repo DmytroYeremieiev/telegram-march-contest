@@ -49,11 +49,15 @@ function scaleGroup(linesGroup, linesData, minValue, maxValue, height) {
   Y_translate_size = height * deltaRatio - height;
   console.log(`deltaRatio: ${deltaRatio}, height: ${height}, Y_translate_size: ${Y_translate_size}, Y_scale_coef: ${Y_scale_coef}`);
   transform += `scale(1 ${Y_scale_coef})`
+  let matrix = [
+    1, 0, 0, Y_scale_coef, 0, (newMax !== maxValue?Y_translate_size*Y_scale_coef:0),
+  ]
   if(newMax !== maxValue){
     transform += ` translate(0, ${Y_translate_size})`
   }
-  console.log('.... ', transform);
-  setAttr(linesGroup, 'transform', transform);
+  console.log('.... ', transform, matrix);
+  // setAttr(linesGroup, 'transform',  `matrix(${matrix.join(' ')})`);
+  setAttr(linesGroup, 'transform',  transform);
 }
 
 function render(_) {

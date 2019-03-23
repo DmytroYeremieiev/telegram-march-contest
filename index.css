@@ -4,7 +4,7 @@
 
 }
 svg g {
-  transition: scale 0.4s linear, transform 0.4s linear;
+  transition: scale 0.4s linear, transform 0.4s linear, matrix 0.4s linear;
 }
 .show {
   visibility: visible;

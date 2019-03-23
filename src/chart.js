@@ -57,6 +57,14 @@ function scaleGroup(linesGroup, linesData, maxValue, height) {
   setAttr(linesGroup, 'transform',  `matrix(${matrix.join(' ')})`);
   // setAttr(linesGroup, 'transform',  transform);
 }
+function mapViewBoxToDataIndex(x, width, x_step_size) {
+  let start = x/x_step_size, 
+      amount = width/x_step_size;
+  return {
+    start: Math.floor(start),
+    amount: Math.ceil(amount)
+  }
+}
 
 function render(_) {
   console.log('_ :', _);
@@ -73,7 +81,8 @@ function render(_) {
   addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025)
     .onDrag((x, width)=>{
       console.log('onDrag', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
-      _.panViewChart.setViewBox({x: x*_.panViewChart.x_step_coefficient, width: width*_.panViewChart.x_step_coefficient})
+      _.panViewChart.setViewBox({x: x*_.panViewChart.x_step_coefficient, width: width*_.panViewChart.x_step_coefficient});
+      console.log('mapViewBoxToDataIndex()', mapViewBoxToDataIndex(x*_.viewAllChart.x_step_coefficient, width*_.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size))
     })
     .onDragEnd((x, width)=>{
       console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
@@ -82,7 +91,7 @@ function render(_) {
 }
 function getProportions(x_steps, viewBox, maxValue, x_step_coefficient) {
   let y_step_coefficient, x_step_size;
-  x_step_size = +parseFloat(viewBox.width * x_step_coefficient / (x_steps.length - 1)).toPrecision(6);
+  x_step_size = +parseFloat(viewBox.width * x_step_coefficient / (x_steps.length - 1)).toPrecision(8);
   y_step_coefficient = viewBox.height / maxValue;
   return {
     x_step_coefficient,

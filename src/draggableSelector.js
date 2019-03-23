@@ -78,7 +78,7 @@ export function add(placement, relativePosition, selectorWidth, relativeSideRail
   makeDraggable(placement, (evt, draggable)=>{
     let {selected, x, new_x, el_x, new_el_x, el_width, new_el_width} = draggable, 
         sideRailSize;
-    new_el_x = +parseFloat(new_el_x).toPrecision(6);
+    new_el_x = +parseFloat(new_el_x).toPrecision(8);
     
     function log() {
       console.log(

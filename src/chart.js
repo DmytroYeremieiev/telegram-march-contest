@@ -2,14 +2,14 @@ import {add as addDraggableSelector} from "./draggableSelector.js"
 import {add as addCheckbox} from "./checkbox.js"
 import {pipe, createSvgElem, setViewBox, setViewPort, setAttr} from "./common.js"
 
-function renderLine(chart, line, minValue) {
+function renderLine(chart, line) {
   let path = createSvgElem('path', line.name),
       {y_step_coefficient, x_step_size, viewBox} = chart,
       d = '',
       x = 0, y = null;
   for (let j = 0; j < line.data.length; j++) {
     const prefix = j === 0 ? 'M' : 'L';
-    y = viewBox.height - (line.data[j] - minValue)*y_step_coefficient;
+    y = viewBox.height - line.data[j]*y_step_coefficient;
     d += prefix + x +','+ y;
     // if (y < 0) {
     //   console.log('j, line.data[j], x, y', j, line.data[j], x, y)
@@ -30,9 +30,8 @@ function showLine(line, show) {
   show ? line.classList.remove('hide') : line.classList.add('hide');
 }
 
-function scaleGroup(linesGroup, linesData, minValue, maxValue, height) {
-  let newMin, newMax, newDelta, 
-      prevDelta = maxValue - minValue,
+function scaleGroup(linesGroup, linesData, maxValue, height) {
+  let newMax, 
       deltaRatio,
       Y_translate_size, Y_scale_coef,
       transform = '';
@@ -42,10 +41,8 @@ function scaleGroup(linesGroup, linesData, minValue, maxValue, height) {
     setAttr(linesGroup, 'transform',  `matrix(1 0 0 1 0 ${-height*2})`);
     return;
   }
-  newMin = Math.min.apply(null, newTotalData);
   newMax = Math.max.apply(null, newTotalData);
-  newDelta = newMax - newMin;
-  deltaRatio = newDelta / prevDelta;
+  deltaRatio = newMax / maxValue;
   Y_scale_coef = 1 / 1 / deltaRatio;
   Y_translate_size = height * deltaRatio - height;
   console.log(`deltaRatio: ${deltaRatio}, height: ${height}, Y_translate_size: ${Y_translate_size}, Y_scale_coef: ${Y_scale_coef}`);
@@ -64,14 +61,14 @@ function scaleGroup(linesGroup, linesData, minValue, maxValue, height) {
 function render(_) {
   console.log('_ :', _);
   Object.values(_.lines).forEach((line)=>{
-    renderLine(_.viewAllChart, line, _.minValue);
-    renderLine(_.panViewChart, line, _.minValue);
+    renderLine(_.viewAllChart, line);
+    renderLine(_.panViewChart, line);
     line.checked = true;
     addCheckbox(_.placement, line.color, line.name, line.checked, (checked)=>{
       // console.log(`${line.name} checked`, checked);
       line.checked = checked;
       showLine(_.panViewChart.lines[line.name].path, checked);
-      scaleGroup(_.panViewChart.group, Object.values(_.lines), _.minValue, _.maxValue, _.panViewChart.viewBox.height);
+      scaleGroup(_.panViewChart.group, Object.values(_.lines), _.maxValue, _.panViewChart.viewBox.height);
     });
   });
   addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025).onSelected((x, width)=>{
@@ -80,10 +77,10 @@ function render(_) {
   });
   _.panViewChart.setViewBox({x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_step_coefficient, width: _.viewAllChart.viewBox.height*_.panViewChart.x_step_coefficient});
 }
-function getProportions(x_steps, viewBox, minValue, maxValue, x_step_coefficient) {
+function getProportions(x_steps, viewBox, maxValue, x_step_coefficient) {
   let y_step_coefficient, x_step_size;
   x_step_size = +parseFloat(viewBox.width * x_step_coefficient / (x_steps.length - 1)).toPrecision(6);
-  y_step_coefficient = viewBox.height / (maxValue - minValue);
+  y_step_coefficient = viewBox.height / maxValue;
   return {
     x_step_coefficient,
     x_step_size,
@@ -160,13 +157,13 @@ function create(placement, config, data){
   setAttr(chart._.panViewChart.svg, "preserveAspectRatio", "none");
   chart._.panViewChart.setViewPort({x: 0, y: 0, width: chart._.containerWidth, height: chart._.containerWidth * panViewChartSidesRatio});
   chart._.panViewChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth});
-  Object.assign(chart._.panViewChart, getProportions(chart._.x.steps, chart._.panViewChart.viewBox, chart._.minValue, chart._.maxValue, 1/viewAllChartSidesRatio));
+  Object.assign(chart._.panViewChart, getProportions(chart._.x.steps, chart._.panViewChart.viewBox, chart._.maxValue, 1/viewAllChartSidesRatio));
   chart._.panViewChart.group = createSvgElem('g', 'lines')
   chart._.panViewChart.svg.append(chart._.panViewChart.group);
 
   chart._.viewAllChart = createChart('createChart', ['border:', '1px solid black;'], viewAllChartSidesRatio);
   chart._.viewAllChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth * viewAllChartSidesRatio});
-  Object.assign(chart._.viewAllChart, getProportions(chart._.x.steps, chart._.viewAllChart.viewBox, chart._.minValue, chart._.maxValue, panViewChartSidesRatio));
+  Object.assign(chart._.viewAllChart, getProportions(chart._.x.steps, chart._.viewAllChart.viewBox, chart._.maxValue, panViewChartSidesRatio));
 //scale(1 2.1212) translate(0, -251.6)
   chart._.viewAllChart.group = createSvgElem('g', 'lines')
   chart._.viewAllChart.svg.append(chart._.viewAllChart.group);

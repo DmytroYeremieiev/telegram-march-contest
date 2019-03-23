@@ -9,7 +9,9 @@
 .checkbox {
   width: 120px;
 }
-
+.checkbox:hover{
+  cursor: pointer;
+} 
 .checkbox .checkmark {
   stroke-width: 2;
   stroke: white;

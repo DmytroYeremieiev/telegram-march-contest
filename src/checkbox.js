@@ -31,8 +31,9 @@ export function add(placement, color, label, checked, onChangeCallback){
   text.textContent = label;
   svg.appendChild(text);
 
-  // svg.addEventListener('click', ()=>{
-  //   console.log('CHECKED');
-  // });
+  svg.addEventListener('click', ()=>{
+    (checked = !checked) ? svg.classList.add('checked') : svg.classList.remove('checked');
+    onChangeCallback(label, checked)
+  });
   placement.appendChild(svg);
 }

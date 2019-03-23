@@ -3,18 +3,10 @@ export function pipe(...fns) {
 }
 
 export function setViewPort(svg, viewPort) {
-  if (viewPort.x != null){
-    svg.setAttributeNS(null, 'x', viewPort.x);
-  }
-  if (viewPort.y != null){
-    svg.setAttributeNS(null, 'y', viewPort.y);
-  }
-  if (viewPort.width != null){
-    svg.setAttributeNS(null, 'width', viewPort.width);
-  }
-  if (viewPort.height != null) {
-    svg.setAttributeNS(null, 'height', viewPort.height );
-  }
+  setAttr(svg, 'x', viewPort.x);
+  setAttr(svg, 'y', viewPort.y);
+  setAttr(svg, 'width', viewPort.width);
+  setAttr(svg, 'height', viewPort.height );
   return svg;
 }
 
@@ -25,19 +17,21 @@ export function setViewBox(svg, viewBox) {
   width = viewBox.width != null ? viewBox.width : width;
   height = viewBox.height != null ? viewBox.height : height;
 
-  svg.setAttributeNS(null, 'viewBox', `${x} ${y} ${width} ${height}`);
+  setAttr(svg, 'viewBox', `${x} ${y} ${width} ${height}`);
   return svg;
 }
 
 export function createSvgElem(elemType = 'svg', id = '', styles = []) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", elemType);
-  svg.setAttribute('id', id);
-  svg.setAttribute('style', styles.join(''));
+  setAttr(svg, 'id', id);
+  setAttr(svg, 'style', styles.join(''));
   return svg;
 }
 
 export function setAttr(svg, name, value) {
-  svg.setAttributeNS(null, name, value);
+  if (value != null) {
+    svg.setAttributeNS(null, name, value);
+  }
   return svg;
 }
 

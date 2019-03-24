@@ -11,9 +11,6 @@ function renderLine(chart, line) {
     const prefix = j === 0 ? 'M' : 'L';
     y = viewBox.height - line.data[j]*y_step_coefficient;
     d += prefix + x +','+ y;
-    // if (y < 0) {
-    //   console.log('j, line.data[j], x, y', j, line.data[j], x, y)
-    // }
     x += x_step_size;
   }
   setAttrs(path, [['d',d],['stroke',line.color],['fill','none']])
@@ -34,7 +31,6 @@ function scaleGroup(linesGroup, newTotalData, maxValue, height) {
       Y_translate_size, Y_scale_coef,
       transform = '';
   if (newTotalData.length === 0) {
-    // linesGroup.removeAttributeNS(null, 'transform');
     setAttr(linesGroup, 'transform',  `matrix(1 0 0 1 0 ${-height*2})`);
     return;
   }
@@ -193,7 +189,6 @@ function create(placement, config, data){
   chart._.viewAllChart = createChart('createChart', ['border:', '1px solid black;'], viewAllChartSidesRatio);
   chart._.viewAllChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth * viewAllChartSidesRatio});
   Object.assign(chart._.viewAllChart, getProportions(chart._.x.steps, chart._.viewAllChart.viewBox, chart._.maxValue, panViewChartSidesRatio));
-//scale(1 2.1212) translate(0, -251.6)
   chart._.viewAllChart.group = createSvgElem('g', 'lines')
   chart._.viewAllChart.svg.append(chart._.viewAllChart.group);
 

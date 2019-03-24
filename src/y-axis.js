@@ -28,7 +28,7 @@ function update(maxValue, axiInfo) {
 }
 
 export function add(placement, maxValue, bBox, limit){
-  let svg = createSvgElem('g', 'y-axi'),
+  let svg = createSvgElem('g', 'y-axi-group'),
       {y_offset, data_offset, chartStepSize, dataStepSize} = configure(maxValue, bBox, limit),
       textContent,
       textInitPosition, lineInitPosition;

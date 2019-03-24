@@ -34,17 +34,23 @@ svg path{
 }
 
 
-#y-axi .y-axi-text{
+#y-axi-group .y-axi-text,
+#x-axi-group .x-axi-text{
   fill: #55575e;
+}
+#y-axi-group .y-axi-text {
   font-size: 18px;
 }
+#x-axi-group .x-axi-text{
+  font-size: 15px;
+}
 @media screen and (max-width: 640px) {
-  #y-axi .y-axi-text {
+  #y-axi-group .y-axi-text {
     font-size: 14px;
   }
 }
 
 
-#y-axi .y-axi-line {
+#y-axi-group .y-axi-line {
   stroke: #eee;
 }

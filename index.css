@@ -70,3 +70,22 @@ svg path{
 #y-axi-group .y-axi-line {
   stroke: #eee;
 }
+
+.popup {
+
+}
+.popup .popup-circle{
+  fill: white;
+  stroke: red;
+  stroke-width: 2px;
+}
+.popup .popup-rect{
+  fill: white;
+  stroke: black;
+}
+.popup .popup-line-text{
+  fill: #55575e;
+}
+.popup .popup-line {
+  stroke: #eee;
+}

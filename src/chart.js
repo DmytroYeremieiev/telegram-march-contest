@@ -63,15 +63,23 @@ function createLine(placement, line, config) {
       {y_step_coefficient, x_step_size, viewBox} = config,
       d = '',
       x = 0, y = null;
+  let pathInfo = {};
   for (let j = 0; j < line.data.length; j++) {
     const prefix = j === 0 ? 'M' : 'L';
     y = viewBox.height - line.data[j]*y_step_coefficient;
     d += prefix + x +','+ y;
     x += x_step_size;
+    pathInfo[j] = {
+      x, y,
+      path: path,
+      name: line.name,
+      color: line.color,
+      value: line.data[j]
+    }
   }
   setAttrs(path, [['d',d],['stroke',line.color],['fill','none']])
   placement.appendChild(path);
-  return path
+  return pathInfo;
 }
 
 function showElement(elem, show) {
@@ -109,19 +117,73 @@ function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
     .map((l)=>l.data.slice(start, start+amount))
     .reduce((s, n)=> s.concat(n), []);
 }
+// <g class="popup" transform="translate(100 0)">
+//   <line class="popup-line" x1="0" y1="0" x2="0" y2="300" class="y-axi-line" />
+//   <circle class="popup-circle" transform="translate(-5 100)" cx="5" cy="5" r="5"/>
+//   <circle class="popup-circle" transform="translate(-5 200)" cx="5" cy="5" r="5"/>
+//   <rect class="popup-rect" transform="translate(-50 1)" x="0" y="0" width="100" height="80" rx="15" ry="15" />
+//   <text class="popup-text" transform="translate(-40 20)" x="0" y="0">250</text>
+//   </g>
+function createInfoPopup(svg, viewBox, linesInfo) {
+  let g = createSvgElem('g', null, null, ['popup']);
+  setAttr(g, 'transform', `translate(${linesInfo[0].x} 0)`)
+  let hLine = createSvgElem('line', null, null, ['popup']);
+  setAttrs(hLine, [['class', 'popup-line'], ['x1',0], ['y1',0], ['x2', 0], ['y2', viewBox.height]]);
+  g.appendChild(hLine);
+
+  let circles = [];
+  function createCircle(l){
+    let circle = createSvgElem('circle', null, null, ['popup-circle']);
+    setAttrs(circle, [['stroke', l.color], ['transform', `translate(0 ${l.y})`], ['cx', 5], ['cy', 5], ['r', 5]]);
+    return circle;
+  }
+  linesInfo.forEach((l)=>{
+    let circle = createCircle(l);
+    g.appendChild(circle);
+    circles.push(circle);
+  });
 
 
-function addHoverPopup(placement, viewBox, data, x_step_size) {
-  placement.addEventListener('mouseover', (evt)=>{
-    let position = getMousePosition(evt, placement);
-    let map = mapViewBoxToDataIndex(position, viewBox.viewBox);
-    console.log("position", position)
+  let rect = createSvgElem('rect', null, null, ['popup-rect']);
+  let text = createSvgElem('popup-text', null, null, ['popup-rect']);
+  text.textContent = "arsarsars";
+
+  g.appendChild(rect);
+  g.appendChild(text);
+
+  svg.appendChild(g);
+  return {
+    update: function (linesInfo) {
+      setAttr(g, 'transform', `translate(${linesInfo[0].x} 0)`);
+      linesInfo.forEach((l, i) => {
+        let circle = circles[i];
+        if (!circle) {
+          circle = createCircle(l);
+          g.appendChild(circle);
+          circles.push(circle);
+        }
+        setAttr(circle, 'transform', `translate(0 ${l.y})`);
+      })
+    }
+  }
+}
+
+function addHoverPopup(config) {
+  let {linesSvg, svg, viewBox, x_step_size, lines} = config;
+  let infoPopup = createInfoPopup(svg, viewBox, [{x: viewBox.width/2, y: 0}]);
+
+  svg.addEventListener('mousemove', (evt)=>{
+    let {x, y} = getMousePosition(evt, linesSvg);
+    let {start} = mapViewBoxToDataIndex(x, viewBox.viewBox, x_step_size);
+    let linesInfo = Object.values(lines).map((l)=>l[start]);
+    console.log(`mouse position: ${x}, dataIndex[${start}]`, linesInfo);
+    infoPopup.update(linesInfo);
   });
 }
 
 function render(_) {
   console.log('_ :', _);
-  addHoverPopup(_.panViewChart.linesSvg, _.panViewChart.viewBox, _.x);
+  addHoverPopup(_.panViewChart);
   let y_axi = addYaxi(_.panViewChart.svg, _.maxValue, Object.assign({}, _.panViewChart.viewBox, {height: _.panViewChart.viewBox.height - yBottomPadding}), 5);
   let x_axi = createXaxi(_.panViewChart.xAxiGroup, _.x, _.panViewChart, 7);
   Object.values(_.lines).forEach((line)=>{
@@ -130,7 +192,7 @@ function render(_) {
     line.checked = true;
     addCheckbox(_.placement, line.color, line.name, line.checked, (checked)=>{
       line.checked = checked;
-      showElement(_.panViewChart.lines[line.name], checked);
+      showElement(_.panViewChart.lines[line.name].path, checked);
       let data = Object.values(_.lines).filter((l)=>l.checked).reduce((s, n)=> s.concat(n.data), []);
       let newMaxValue = Math.max.apply(null, data);
       y_axi.update(newMaxValue);

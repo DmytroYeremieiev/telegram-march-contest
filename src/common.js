@@ -33,10 +33,13 @@ export function setViewBox(svg, viewBox) {
   return svg;
 }
 
-export function createSvgElem(elemType = 'svg', id = '', styles = []) {
+export function createSvgElem(elemType = 'svg', id = '', styles = [], classes = []) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", elemType);
-  if(id.length > 0) setAttr(svg, 'id', id);
+  if(id != null && id.length > 0) setAttr(svg, 'id', id);
   if(styles!=null && styles.length > 0) setAttr(svg, 'style', styles.join(''));
+  if(classes.length > 0){
+    classes.forEach((c)=>svg.classList.add(c));
+  }
   return svg;
 }
 

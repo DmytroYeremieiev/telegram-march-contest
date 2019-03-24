@@ -29,7 +29,7 @@ function drag(evt, draggable) {
 }
 function endDrag(evt, draggable) {
   // console.log('endDrag', draggable);
-  if(draggable.selected && isFinite(draggable.x0_offset)) draggable.onDragEnd(evt, draggable);
+  if(draggable.selected && isFinite(draggable.x0_offset) && isFinite(draggable.new_el_x)) draggable.onDragEnd(evt, draggable);
   draggable.selected = false;
 }
 

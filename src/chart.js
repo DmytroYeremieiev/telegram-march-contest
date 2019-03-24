@@ -36,14 +36,12 @@ function createXaxi(placement, xAxi, config, limit) {
   return {
     placement,
     x_map,
-    start,
-    amount,
     x: 0,
     width: viewBox.width,
     x_step_size,
     showEvery,
     update: function(x, width) {
-      let {start, amount} = mapViewBoxToDataIndex(x, width, x_step_size);
+      let {amount} = mapViewBoxToDataIndex(x, width, x_step_size);
       let ratio = this.width/width;
       // console.log("createXaxi:update", `${this.start} -> ${start}, ${this.amount}->${amount}`);
       setAttr(this.placement, 'transform',  `translate(${this.x - x*ratio} 0)`);
@@ -82,8 +80,7 @@ function showElement(elem, show) {
 
 function scaleGroup(linesGroup, newMaxValue, prevMaxValue, height) {
   let deltaRatio,
-      Y_translate_size, Y_scale_coef,
-      transform = '';
+      Y_translate_size, Y_scale_coef;
   if (!isFinite(newMaxValue)) {
     setAttr(linesGroup, 'transform',  `matrix(1 0 0 1 0 ${-height*2})`);
     return;
@@ -92,16 +89,8 @@ function scaleGroup(linesGroup, newMaxValue, prevMaxValue, height) {
   Y_scale_coef = 1 / deltaRatio;
   Y_translate_size = height * deltaRatio - height;
   // console.log(`deltaRatio: ${deltaRatio}, height: ${height}, Y_translate_size: ${Y_translate_size}, Y_scale_coef: ${Y_scale_coef}`);
-  transform += `scale(1 ${Y_scale_coef})`;
-  let matrix = [
-    1, 0, 0, Y_scale_coef, 0, (newMaxValue !== prevMaxValue?Y_translate_size*Y_scale_coef:0),
-  ];
-  if(newMaxValue !== prevMaxValue){
-    transform += ` translate(0, ${Y_translate_size})`
-  }
-  // console.log('.... ', transform, matrix);
+  let matrix = [1, 0, 0, Y_scale_coef, 0, (newMaxValue !== prevMaxValue?Y_translate_size*Y_scale_coef:0),];
   setAttr(linesGroup, 'transform',  `matrix(${matrix.join(' ')})`);
-  // setAttr(linesGroup, 'transform',  transform);
 }
 
 function mapViewBoxToDataIndex(x, width, x_step_size) {

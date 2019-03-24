@@ -5,7 +5,10 @@ function getSideRailSize(relativeSideRailSize, relativeSelectorSize) {
 }
 
 function getXPosition(evt, svg) {
-  var CTM = svg.getScreenCTM();
+  let CTM = svg.getScreenCTM();
+  if (evt.touches) {
+    evt = evt.touches[0];
+  }
   return (evt.clientX - CTM.e) / CTM.a
 }
 
@@ -43,6 +46,12 @@ function makeDraggable(svg, onDrag, onDragEnd) {
   svg.addEventListener('mousemove', evt=> drag(evt, draggable), false);
   svg.addEventListener('mouseup', evt=> endDrag(evt, draggable), false);
   svg.addEventListener('mouseleave', evt=> endDrag(evt, draggable));
+
+  svg.addEventListener('touchstart', evt=> startDrag(evt, draggable));
+  svg.addEventListener('touchmove', evt=> drag(evt, draggable));
+  svg.addEventListener('touchend', evt=> endDrag(evt, draggable));
+  svg.addEventListener('touchleave', evt=> endDrag(evt, draggable));
+  svg.addEventListener('touchcancel', evt=> endDrag(evt, draggable));
 }
 
 export function add(placement, relativePosition, selectorWidth, relativeSideRailSize) {

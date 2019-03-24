@@ -36,7 +36,15 @@ svg path{
 
 #y-axi .y-axi-text{
   fill: #55575e;
+  font-size: 18px;
 }
+@media screen and (max-width: 640px) {
+  #y-axi .y-axi-text {
+    font-size: 14px;
+  }
+}
+
+
 #y-axi .y-axi-line {
   stroke: #eee;
 }

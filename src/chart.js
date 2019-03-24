@@ -100,7 +100,7 @@ function render(_) {
       // console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
     });
   setViewBox(_.panViewChart.linesSvg, {x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_step_coefficient, width: _.viewAllChart.viewBox.height*_.panViewChart.x_step_coefficient});
-  // addYaxi(_.panViewChart.svg, null, 5);
+  addYaxi(_.panViewChart.svg, null, 5);
 }
 function getProportions(x_steps, viewBox, maxValue, x_step_coefficient) {
   let y_step_coefficient, x_step_size;
@@ -174,7 +174,7 @@ function create(placement, config, data){
     prepareData
   )({placement: placement, data: data});
 
-  chart._.panViewChart = createChart('createChart', ['border:', '1px solid black;'], panViewChartSidesRatio);
+  chart._.panViewChart = createChart('createChart', null, panViewChartSidesRatio);
   setAttr(chart._.panViewChart.svg, "preserveAspectRatio", "none");
   chart._.panViewChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth});
   Object.assign(chart._.panViewChart, getProportions(chart._.x.steps, chart._.panViewChart.viewBox, chart._.maxValue, 1/viewAllChartSidesRatio));
@@ -187,9 +187,6 @@ function create(placement, config, data){
   chart._.panViewChart.linesGroup = createSvgElem('g', 'lines-group');
   chart._.panViewChart.linesSvg.append(chart._.panViewChart.linesGroup);
   chart._.panViewChart.svg.append(chart._.panViewChart.linesSvg);
-
-  chart._.panViewChart.yAxiSvg = createSvgElem('svg', 'y-axi');
-  chart._.panViewChart.svg.append(chart._.panViewChart.yAxiSvg);
 
 
   chart._.viewAllChart = createChart('createChart', ['border:', '1px solid black;'], viewAllChartSidesRatio);

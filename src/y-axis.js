@@ -12,11 +12,11 @@ export function add(placement, max, limit){
   dataStepSize = max / limit;
 
   let textInitPosition = {
-    x: bBox.width / 50, y: 0
+    x: 0, y: 0
   };
   let textContent = max;
   let lineInitPosition = {
-    x1: 0, y1: 0, x2: bBox.width, y2: 0
+    x1: 0, y1: 10, x2: bBox.width, y2: 0
   };
 
   while (limit > 0){
@@ -32,12 +32,12 @@ export function add(placement, max, limit){
     setAttrs(line, [
       ['x1',lineInitPosition.x1],['y1',lineInitPosition.y1],
       ['x2',lineInitPosition.x2], ['y2', lineInitPosition.y2],
-      ['class','y-axi-text']
+      ['class','y-axi-line']
     ]);
     svg.appendChild(line);
   }
 
-  placement.appendChild(svg);
+  placement.insertBefore(svg, placement.firstChild);
   return {
 
   }

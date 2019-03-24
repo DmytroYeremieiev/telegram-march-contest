@@ -1,33 +1,33 @@
 import {pipe, createSvgElem, setViewBox, setViewPort, setAttr, setAttrs} from "./common.js"
 
-export function add(placement, max, limit){
+export function add(placement, bBox, maxValue, limit){
   let svg = createSvgElem('g', 'y-axi'),
-      bBox = placement.getBBox(),
-      chartStepSize,
-      dataStepSize;
+      y_offset = bBox.height / (limit * 4),
+      data_offset = y_offset / bBox.height * maxValue,
+      chartStepSize, dataStepSize,
+      textContent,
+      textInitPosition, lineInitPosition;
 
-  max = 300;
+  chartStepSize = (bBox.height - y_offset) / limit;
+  dataStepSize = (maxValue - data_offset) / limit;
+  textContent = maxValue -  data_offset;
 
-  chartStepSize = bBox.height / limit;
-  dataStepSize = max / limit;
-
-  let textInitPosition = {
-    x: 0, y: 0
+  textInitPosition = {
+    x: 0, y: y_offset
   };
-  let textContent = max;
-  let lineInitPosition = {
-    x1: 0, y1: 10, x2: bBox.width, y2: 0
+  lineInitPosition = {
+    x1: 0, y1: y_offset + 10, x2: bBox.width, y2: y_offset + 10
   };
 
-  while (limit > 0){
+  while (limit >= 0){
     limit -= 1;
-    textInitPosition.y += chartStepSize;
     let text = createSvgElem('text');
     setAttrs(text, [['x',textInitPosition.x],['y', textInitPosition.y], ['class','y-axi-text']]);
-    text.textContent = textContent = textContent - dataStepSize;
+    text.textContent = Math.round(textContent);
     svg.appendChild(text);
+    textInitPosition.y += chartStepSize;
+    textContent = textContent - dataStepSize;
 
-    lineInitPosition.y1 = lineInitPosition.y2 = lineInitPosition.y1 + chartStepSize;
     let line = createSvgElem('line');
     setAttrs(line, [
       ['x1',lineInitPosition.x1],['y1',lineInitPosition.y1],
@@ -35,6 +35,7 @@ export function add(placement, max, limit){
       ['class','y-axi-line']
     ]);
     svg.appendChild(line);
+    lineInitPosition.y1 = lineInitPosition.y2 = lineInitPosition.y1 + chartStepSize;
   }
 
   placement.insertBefore(svg, placement.firstChild);

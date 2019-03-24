@@ -68,6 +68,8 @@ function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
 
 function render(_) {
   console.log('_ :', _);
+  let y_axi = addYaxi(_.panViewChart.svg, _.panViewChart.viewBox,  _.maxValue, 5);
+
   Object.values(_.lines).forEach((line)=>{
     _.panViewChart.lines[line.name] = createLine(_.panViewChart.linesGroup, line, _.panViewChart);
     _.viewAllChart.lines[line.name] = createLine(_.viewAllChart.group, line, _.viewAllChart);
@@ -100,7 +102,6 @@ function render(_) {
       // console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
     });
   setViewBox(_.panViewChart.linesSvg, {x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_step_coefficient, width: _.viewAllChart.viewBox.height*_.panViewChart.x_step_coefficient});
-  addYaxi(_.panViewChart.svg, null, 5);
 }
 function getProportions(x_steps, viewBox, maxValue, x_step_coefficient) {
   let y_step_coefficient, x_step_size;

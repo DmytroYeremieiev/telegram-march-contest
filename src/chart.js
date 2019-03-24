@@ -4,6 +4,26 @@ import {add as addYaxi} from "./y-axis.js"
 
 import {pipe, createSvgElem, setViewBox, setViewPort, setAttr, setAttrs} from "./common.js"
 
+const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+
+function formatDate(dateTimestamp) {
+  const d = new Date(dateTimestamp);
+  return monthNames[d.getMonth()] + ' ' + d.getDate();
+}
+
+function createXaxi(placement, xAxi, config) {
+  let {x_step_size, viewBox} = config,
+      x = 0, y = viewBox.height;
+
+  for (let j = 0; j < xAxi.data.length; j++) {
+    let text = createSvgElem('text');
+    setAttrs(text, [['x', x],['y', y], ['class','x-axi-text']]);
+    text.textContent = formatDate(xAxi.data[j]);
+    placement.appendChild(text);
+    x += x_step_size;
+  }
+}
+
 function createLine(placement, line, config) {
   let path = createSvgElem('path', line.name),
       {y_step_coefficient, x_step_size, viewBox} = config,
@@ -67,7 +87,7 @@ function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
 function render(_) {
   console.log('_ :', _);
   let y_axi = addYaxi(_.panViewChart.svg, _.maxValue, _.panViewChart.viewBox, 5);
-
+  createXaxi(_.panViewChart.xAxiGroup, _.x, _.panViewChart);
   Object.values(_.lines).forEach((line)=>{
     _.panViewChart.lines[line.name] = createLine(_.panViewChart.linesGroup, line, _.panViewChart);
     _.viewAllChart.lines[line.name] = createLine(_.viewAllChart.group, line, _.viewAllChart);
@@ -132,7 +152,7 @@ function prepareData(_) {
       lines[hash].min = Math.min.apply(null, column);
       lines[hash].max = Math.max.apply(null, column);
     }else{
-      x.steps = column;
+      x.data = column;
     }
   });
   _.lines = lines;
@@ -182,7 +202,7 @@ function create(placement, config, data){
   chart._.panViewChart = createChart('createChart', null, panViewChartSidesRatio);
   setAttr(chart._.panViewChart.svg, "preserveAspectRatio", "none");
   chart._.panViewChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth});
-  Object.assign(chart._.panViewChart, getProportions(chart._.x.steps, chart._.panViewChart.viewBox, chart._.maxValue, 1/viewAllChartSidesRatio));
+  Object.assign(chart._.panViewChart, getProportions(chart._.x.data, chart._.panViewChart.viewBox, chart._.maxValue, 1/viewAllChartSidesRatio));
 
   chart._.panViewChart.linesSvg = createSvgElem('svg', 'lines-svg');
   setAttr(chart._.panViewChart.linesSvg, "preserveAspectRatio", "none");
@@ -190,13 +210,15 @@ function create(placement, config, data){
   setViewBox(chart._.panViewChart.linesSvg, {width: chart._.containerWidth, height: chart._.containerWidth});
 
   chart._.panViewChart.linesGroup = createSvgElem('g', 'lines-group');
+  chart._.panViewChart.xAxiGroup = createSvgElem('g', 'x-axi-group');
+  chart._.panViewChart.linesSvg.append(chart._.panViewChart.xAxiGroup);
   chart._.panViewChart.linesSvg.append(chart._.panViewChart.linesGroup);
   chart._.panViewChart.svg.append(chart._.panViewChart.linesSvg);
 
 
   chart._.viewAllChart = createChart('createChart', ['border:', '1px solid black;'], viewAllChartSidesRatio);
   chart._.viewAllChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth * viewAllChartSidesRatio});
-  Object.assign(chart._.viewAllChart, getProportions(chart._.x.steps, chart._.viewAllChart.viewBox, chart._.maxValue, panViewChartSidesRatio));
+  Object.assign(chart._.viewAllChart, getProportions(chart._.x.data, chart._.viewAllChart.viewBox, chart._.maxValue, panViewChartSidesRatio));
   chart._.viewAllChart.group = createSvgElem('g', 'lines')
   chart._.viewAllChart.svg.append(chart._.viewAllChart.group);
 

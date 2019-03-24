@@ -14,22 +14,39 @@ function formatDate(dateTimestamp) {
 function createXaxi(placement, xAxi, config, limit) {
   let {x_step_size, viewBox} = config,
       x = 0, y = viewBox.height;
-  let x_map = {};
-  let {amount} = mapViewBoxToDataIndex(0, viewBox.width, x_step_size);
+  let x_map = [];
+  let {start, amount} = mapViewBoxToDataIndex(0, viewBox.width, x_step_size);
   let showEvery = Math.ceil(amount/limit);
-  console.log("amount:", amount);
+  console.log("amount:", amount, "showEvery: ", showEvery);
   for (let j = 0; j < xAxi.data.length; j++) {
     let text = createSvgElem('text');
     setAttrs(text, [['x', x],['y', y], ['class','x-axi-text hide']]);
     text.textContent = formatDate(xAxi.data[j]);
     if (j % showEvery === 0) showElement(text, true);
     placement.appendChild(text);
-    x_map[xAxi.data[j]] = text;
+    x_map.push(text);
     x += x_step_size;
   }
   return {
-    placement: placement,
-    x_map: x_map
+    placement,
+    x_map,
+    start,
+    amount,
+    y: y,
+    x: 0,
+    width: viewBox.width,
+    x_step_size,
+    showEvery,
+    update: function(x, width) {
+      let {start, amount} = mapViewBoxToDataIndex(x, width, x_step_size);
+      console.log("createXaxi:update", `${this.start} -> ${start}, ${this.amount}->${amount}, ${this.x} -> ${x} = ${this.x - x}`);
+      setAttr(this.placement, 'transform',  `translate(${this.x - x} 0)`);
+      if(width > this.width){
+        for (let i = 0; i < this.x_map.length; i++) {
+          setAttr(x_map[i], 'dx',  this.width - width);
+        }
+      }
+    }
   };
 }
 
@@ -76,6 +93,7 @@ function scaleGroup(linesGroup, newMaxValue, prevMaxValue, height) {
   setAttr(linesGroup, 'transform',  `matrix(${matrix.join(' ')})`);
   // setAttr(linesGroup, 'transform',  transform);
 }
+
 function mapViewBoxToDataIndex(x, width, x_step_size) {
   let start = x/x_step_size, 
       amount = width/x_step_size;
@@ -96,7 +114,7 @@ function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
 function render(_) {
   console.log('_ :', _);
   let y_axi = addYaxi(_.panViewChart.svg, _.maxValue, _.panViewChart.viewBox, 5);
-  createXaxi(_.panViewChart.xAxiGroup, _.x, _.panViewChart, 6);
+  let x_axi = createXaxi(_.panViewChart.xAxiGroup, _.x, _.panViewChart, 7);
   Object.values(_.lines).forEach((line)=>{
     _.panViewChart.lines[line.name] = createLine(_.panViewChart.linesGroup, line, _.panViewChart);
     _.viewAllChart.lines[line.name] = createLine(_.viewAllChart.group, line, _.viewAllChart);
@@ -111,10 +129,11 @@ function render(_) {
     });
   });
   let timer = null;
-  addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025)
+  addDraggableSelector(_.viewAllChart.svg, 0, _.viewAllChart.viewBox.height, 0.025)
     .onDrag((x, width)=>{
-      // console.log('onDrag', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
+      console.log('onDrag', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
       setViewBox(_.panViewChart.linesSvg, {x: x*_.panViewChart.x_step_coefficient, width: width*_.panViewChart.x_step_coefficient});
+      x_axi.update(x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
       if(timer) return;
       timer = setTimeout(()=> {
         timer = null;
@@ -128,21 +147,19 @@ function render(_) {
     .onDragEnd((x, width)=>{
       clearTimeout(timer);
       timer = null;
+      x_axi.update(x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
       let data = getTotalDataInRange(x, width, _.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size, _.lines);
       let newMaxValue = Math.max.apply(null, data);
       y_axi.update(newMaxValue);
       scaleGroup(_.panViewChart.linesGroup, newMaxValue, _.maxValue, _.panViewChart.viewBox.height);
-      // console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
+      console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
     });
   let defaultPanView = {
-    x:  _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_step_coefficient,
+    x:  0,
     width: _.viewAllChart.viewBox.height*_.panViewChart.x_step_coefficient
-  }
+  };
   setViewBox(_.panViewChart.linesSvg, {x: defaultPanView.x, width: defaultPanView.width});
-  let data = mapViewBoxToDataIndex(defaultPanView.x, defaultPanView.width,  _.panViewChart.x_step_size);
-  console.log("data", data);
-
-
+  x_axi.update(defaultPanView.x, defaultPanView.width);
 }
 function getProportions(x_steps, viewBox, maxValue, x_step_coefficient) {
   let y_step_coefficient, x_step_size;
@@ -216,7 +233,7 @@ function create(placement, config, data){
     prepareData
   )({placement: placement, data: data});
 
-  chart._.panViewChart = createChart('createChart', null, panViewChartSidesRatio);
+  chart._.panViewChart = createChart('panViewChart', null, panViewChartSidesRatio);
   setAttr(chart._.panViewChart.svg, "preserveAspectRatio", "none");
   chart._.panViewChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth});
   Object.assign(chart._.panViewChart, getProportions(chart._.x.data, chart._.panViewChart.viewBox, chart._.maxValue, 1/viewAllChartSidesRatio));
@@ -233,7 +250,7 @@ function create(placement, config, data){
   chart._.panViewChart.svg.append(chart._.panViewChart.xAxiGroup);
 
 
-  chart._.viewAllChart = createChart('createChart', ['border:', '1px solid black;'], viewAllChartSidesRatio);
+  chart._.viewAllChart = createChart('viewAllChart', ['border:', '1px solid black;'], viewAllChartSidesRatio);
   chart._.viewAllChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth * viewAllChartSidesRatio});
   Object.assign(chart._.viewAllChart, getProportions(chart._.x.data, chart._.viewAllChart.viewBox, chart._.maxValue, panViewChartSidesRatio));
   chart._.viewAllChart.group = createSvgElem('g', 'lines')

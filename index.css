@@ -3,7 +3,7 @@
   height: 600px;
 
 }
-svg g {
+#lines-svg g {
   transition: scale 0.4s linear, transform 0.4s linear, matrix 0.4s linear;
 }
 svg path{

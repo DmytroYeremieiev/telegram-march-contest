@@ -5,15 +5,10 @@
   height: 600px;
 }
 #container .main-canvas {
-  width: 46%;
-  margin: 0 2% 40px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 40px 40px;
 }
-@media screen and (max-width: 640px) {
-  #container .main-canvas {
-    width: 100%;
-  }
-}
-
 
 #lines-svg g {
   transition: scale 0.4s linear, transform 0.4s linear, matrix 0.4s linear;
@@ -28,7 +23,8 @@ svg path{
   visibility: hidden;
 }
 .checkbox {
-  width: 120px;
+  width: 80px;
+  padding: 10px 10px 10px 0;
 }
 .checkbox:hover{
   cursor: pointer;

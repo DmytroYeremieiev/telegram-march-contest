@@ -8,7 +8,7 @@ export function add(placement, color, label, checked, onChangeCallback){
           check,
         text;
   svg = createSvgElem('svg');
-  setAttr(svg, 'viewBox', '0 0 150 50');
+  setAttr(svg, 'viewBox', '0 0 100 50');
   if(checked){
     setAttr(svg, 'class', 'checkbox' + (checked?' checked': ''));
   }

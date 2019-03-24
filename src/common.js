@@ -23,8 +23,8 @@ export function setViewBox(svg, viewBox) {
 
 export function createSvgElem(elemType = 'svg', id = '', styles = []) {
   const svg = document.createElementNS("http://www.w3.org/2000/svg", elemType);
-  setAttr(svg, 'id', id);
-  setAttr(svg, 'style', styles.join(''));
+  if(id.length > 0) setAttr(svg, 'id', id);
+  if(styles.length > 0) setAttr(svg, 'style', styles.join(''));
   return svg;
 }
 

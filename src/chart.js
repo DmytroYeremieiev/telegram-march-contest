@@ -1,10 +1,12 @@
 import {add as addDraggableSelector} from "./draggableSelector.js"
 import {add as addCheckbox} from "./checkbox.js"
+import {add as addYaxi} from "./y-axis.js"
+
 import {pipe, createSvgElem, setViewBox, setViewPort, setAttr, setAttrs} from "./common.js"
 
-function renderLine(chart, line) {
+function createLine(placement, line, config) {
   let path = createSvgElem('path', line.name),
-      {y_step_coefficient, x_step_size, viewBox} = chart,
+      {y_step_coefficient, x_step_size, viewBox} = config,
       d = '',
       x = 0, y = null;
   for (let j = 0; j < line.data.length; j++) {
@@ -14,11 +16,8 @@ function renderLine(chart, line) {
     x += x_step_size;
   }
   setAttrs(path, [['d',d],['stroke',line.color],['fill','none']])
-  chart.lines[line.name] = {};
-  chart.lines[line.name].path = path;
-  chart.lines[line.name].path = path;
-  // chart.svg.appendChild(path);
-  chart.group.appendChild(path);
+  placement.appendChild(path);
+  return path
 }
 
 function showLine(line, show) {
@@ -70,26 +69,26 @@ function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
 function render(_) {
   console.log('_ :', _);
   Object.values(_.lines).forEach((line)=>{
-    renderLine(_.viewAllChart, line);
-    renderLine(_.panViewChart, line);
+    _.panViewChart.lines[line.name] = createLine(_.panViewChart.linesGroup, line, _.panViewChart);
+    _.viewAllChart.lines[line.name] = createLine(_.viewAllChart.group, line, _.viewAllChart);
     line.checked = true;
     addCheckbox(_.placement, line.color, line.name, line.checked, (checked)=>{
       line.checked = checked;
-      showLine(_.panViewChart.lines[line.name].path, checked);
+      showLine(_.panViewChart.lines[line.name], checked);
       let data = Object.values(_.lines).filter((l)=>l.checked).reduce((s, n)=> s.concat(n.data), []);
-      scaleGroup(_.panViewChart.group, data, _.maxValue, _.panViewChart.viewBox.height);
+      scaleGroup(_.panViewChart.linesGroup, data, _.maxValue, _.panViewChart.viewBox.height);
     });
   });
   let timer = null;
   addDraggableSelector(_.viewAllChart.svg, 0.5, _.viewAllChart.viewBox.height, 0.025)
     .onDrag((x, width)=>{
       console.log('onDrag', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
-      _.panViewChart.setViewBox({x: x*_.panViewChart.x_step_coefficient, width: width*_.panViewChart.x_step_coefficient});
+      setViewBox(_.panViewChart.linesSvg, {x: x*_.panViewChart.x_step_coefficient, width: width*_.panViewChart.x_step_coefficient});
       if(timer) return;
       timer = setTimeout(()=> {
         timer = null;
         let data = getTotalDataInRange(x, width, _.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size, _.lines);
-        scaleGroup(_.panViewChart.group, data, _.maxValue, _.panViewChart.viewBox.height);
+        scaleGroup(_.panViewChart.linesGroup, data, _.maxValue, _.panViewChart.viewBox.height);
       }, 100)
 
     })
@@ -97,10 +96,11 @@ function render(_) {
       clearTimeout(timer);
       timer = null;
       let data = getTotalDataInRange(x, width, _.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size, _.lines);
-      scaleGroup(_.panViewChart.group, data, _.maxValue, _.panViewChart.viewBox.height);
+      scaleGroup(_.panViewChart.linesGroup, data, _.maxValue, _.panViewChart.viewBox.height);
       // console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
     });
-  _.panViewChart.setViewBox({x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_step_coefficient, width: _.viewAllChart.viewBox.height*_.panViewChart.x_step_coefficient});
+  setViewBox(_.panViewChart.linesSvg, {x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_step_coefficient, width: _.viewAllChart.viewBox.height*_.panViewChart.x_step_coefficient});
+  // addYaxi(_.panViewChart.svg, null, 5);
 }
 function getProportions(x_steps, viewBox, maxValue, x_step_coefficient) {
   let y_step_coefficient, x_step_size;
@@ -156,10 +156,6 @@ function createChart(id, styles, sides_ratio) {
     y_step_coefficient: 1,
     lines: {},
     group: null,
-    setViewPort: function(viewPort) {
-      Object.assign(this.viewPort, viewPort);
-      setViewPort(svg, this.viewPort);
-    },
     setViewBox: function(viewBox) {
       Object.assign(this.viewBox, viewBox);
       setViewBox(svg, this.viewBox);
@@ -180,11 +176,21 @@ function create(placement, config, data){
 
   chart._.panViewChart = createChart('createChart', ['border:', '1px solid black;'], panViewChartSidesRatio);
   setAttr(chart._.panViewChart.svg, "preserveAspectRatio", "none");
-  chart._.panViewChart.setViewPort({x: 0, y: 0, width: chart._.containerWidth, height: chart._.containerWidth * panViewChartSidesRatio});
   chart._.panViewChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth});
   Object.assign(chart._.panViewChart, getProportions(chart._.x.steps, chart._.panViewChart.viewBox, chart._.maxValue, 1/viewAllChartSidesRatio));
-  chart._.panViewChart.group = createSvgElem('g', 'lines')
-  chart._.panViewChart.svg.append(chart._.panViewChart.group);
+
+  chart._.panViewChart.linesSvg = createSvgElem('svg', 'lines-svg');
+  setAttr(chart._.panViewChart.linesSvg, "preserveAspectRatio", "none");
+  setViewPort(chart._.panViewChart.linesSvg, {x: 0, y: 0, width: chart._.containerWidth, height: chart._.containerWidth * panViewChartSidesRatio});
+  setViewBox(chart._.panViewChart.linesSvg, {width: chart._.containerWidth, height: chart._.containerWidth});
+
+  chart._.panViewChart.linesGroup = createSvgElem('g', 'lines-group');
+  chart._.panViewChart.linesSvg.append(chart._.panViewChart.linesGroup);
+  chart._.panViewChart.svg.append(chart._.panViewChart.linesSvg);
+
+  chart._.panViewChart.yAxiSvg = createSvgElem('svg', 'y-axi');
+  chart._.panViewChart.svg.append(chart._.panViewChart.yAxiSvg);
+
 
   chart._.viewAllChart = createChart('createChart', ['border:', '1px solid black;'], viewAllChartSidesRatio);
   chart._.viewAllChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth * viewAllChartSidesRatio});

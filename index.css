@@ -32,3 +32,11 @@ svg path{
 .checkbox.checked .checkmark__circle{
   fill: #7ac142;
 }
+
+
+#y-axi .y-axi-text{
+  fill: #55575e;
+}
+#y-axi .y-axi-line {
+  stroke: #eee;
+}

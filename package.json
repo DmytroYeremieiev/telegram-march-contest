@@ -19,6 +19,8 @@
   },
   "homepage": "https://github.com/DmytroYeremieiev/telegram-march-contest#readme",
   "devDependencies": {
-    "browser-sync": "^2.26.3"
+    "browser-sync": "^2.26.3",
+    "webpack": "^4.29.6",
+    "webpack-cli": "^3.3.0"
   }
 }

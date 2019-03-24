@@ -77,6 +77,7 @@ function render(_) {
       showLine(_.panViewChart.lines[line.name], checked);
       let data = Object.values(_.lines).filter((l)=>l.checked).reduce((s, n)=> s.concat(n.data), []);
       let newMaxValue = Math.max.apply(null, data);
+      y_axi.update(newMaxValue);
       scaleGroup(_.panViewChart.linesGroup, newMaxValue, _.maxValue, _.panViewChart.viewBox.height);
     });
   });
@@ -90,6 +91,7 @@ function render(_) {
         timer = null;
         let data = getTotalDataInRange(x, width, _.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size, _.lines);
         let newMaxValue = Math.max.apply(null, data);
+        y_axi.update(newMaxValue);
         scaleGroup(_.panViewChart.linesGroup, newMaxValue, _.maxValue, _.panViewChart.viewBox.height);
       }, 100)
 
@@ -99,6 +101,7 @@ function render(_) {
       timer = null;
       let data = getTotalDataInRange(x, width, _.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size, _.lines);
       let newMaxValue = Math.max.apply(null, data);
+      y_axi.update(newMaxValue);
       scaleGroup(_.panViewChart.linesGroup, newMaxValue, _.maxValue, _.panViewChart.viewBox.height);
       // console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
     });

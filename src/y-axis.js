@@ -1,15 +1,44 @@
 import {pipe, createSvgElem, setViewBox, setViewPort, setAttr, setAttrs} from "./common.js"
 
-export function add(placement, bBox, maxValue, limit){
+
+function configure(maxValue, bBox, limit) {
+  let y_offset = bBox.height / (limit * 4);
+  let data_offset = y_offset / bBox.height * maxValue;
+  let chartStepSize = (bBox.height - y_offset) / limit;
+  let dataStepSize = (maxValue - data_offset) / limit;
+  return {
+    y_offset, data_offset,
+    chartStepSize, dataStepSize
+  }
+}
+
+
+function update(maxValue, axiInfo) {
+  let {bBox, limit, labels} = axiInfo;
+  let {data_offset, dataStepSize} = configure(maxValue, bBox, limit);
+  let textContent = maxValue -  data_offset;
+  for (let i = 0; i < limit; i++) {
+    if(!isFinite(textContent)) {
+      labels[i].textContent = '';
+      continue;
+    }
+    labels[i].textContent = Math.round(textContent);
+    textContent = textContent - dataStepSize;
+  }
+}
+
+export function add(placement, maxValue, bBox, limit){
   let svg = createSvgElem('g', 'y-axi'),
-      y_offset = bBox.height / (limit * 4),
-      data_offset = y_offset / bBox.height * maxValue,
-      chartStepSize, dataStepSize,
+      {y_offset, data_offset, chartStepSize, dataStepSize} = configure(maxValue, bBox, limit),
       textContent,
       textInitPosition, lineInitPosition;
 
-  chartStepSize = (bBox.height - y_offset) / limit;
-  dataStepSize = (maxValue - data_offset) / limit;
+  let axiInfo = {
+    bBox: bBox,
+    limit: limit,
+    labels: []
+  };
+
   textContent = maxValue -  data_offset;
 
   textInitPosition = {
@@ -24,6 +53,7 @@ export function add(placement, bBox, maxValue, limit){
     let text = createSvgElem('text');
     setAttrs(text, [['x',textInitPosition.x],['y', textInitPosition.y], ['class','y-axi-text']]);
     text.textContent = Math.round(textContent);
+    axiInfo.labels.push(text);
     svg.appendChild(text);
     textInitPosition.y += chartStepSize;
     textContent = textContent - dataStepSize;
@@ -40,6 +70,6 @@ export function add(placement, bBox, maxValue, limit){
 
   placement.insertBefore(svg, placement.firstChild);
   return {
-
+    update: (maxValue)=> update(maxValue, axiInfo)
   }
 }

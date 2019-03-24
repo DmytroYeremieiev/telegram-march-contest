@@ -6,6 +6,8 @@ import {pipe, createSvgElem, setViewBox, setViewPort, setAttr, setAttrs} from ".
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
+const yBottomPadding = 40;
+
 function formatDate(dateTimestamp) {
   const d = new Date(dateTimestamp);
   return monthNames[d.getMonth()] + ' ' + d.getDate();
@@ -14,7 +16,7 @@ function formatDate(dateTimestamp) {
 function createXaxi(placement, xAxi, config, limit) {
   let {x_step_size, viewBox} = config,
       textWidthOffset = 44/2,
-      x = 0, y = viewBox.height;
+      x = 0, y = viewBox.height - 10;
   let x_map = [];
   let {start, amount} = mapViewBoxToDataIndex(0, viewBox.width, x_step_size);
   let showEvery = Math.ceil(amount/limit);
@@ -121,7 +123,7 @@ function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
 
 function render(_) {
   console.log('_ :', _);
-  let y_axi = addYaxi(_.panViewChart.svg, _.maxValue, _.panViewChart.viewBox, 5);
+  let y_axi = addYaxi(_.panViewChart.svg, _.maxValue, Object.assign({}, _.panViewChart.viewBox, {height: _.panViewChart.viewBox.height - yBottomPadding}), 5);
   let x_axi = createXaxi(_.panViewChart.xAxiGroup, _.x, _.panViewChart, 7);
   Object.values(_.lines).forEach((line)=>{
     _.panViewChart.lines[line.name] = createLine(_.panViewChart.linesGroup, line, _.panViewChart);
@@ -242,13 +244,13 @@ function create(placement, data){
 
   chart._.panViewChart = createChart('panViewChart', null, panViewChartSidesRatio);
   setAttr(chart._.panViewChart.svg, "preserveAspectRatio", "none");
-  chart._.panViewChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth});
+  chart._.panViewChart.setViewBox({width: chart._.containerWidth, height: chart._.containerWidth + yBottomPadding});
   Object.assign(chart._.panViewChart, getProportions(chart._.x.data, chart._.panViewChart.viewBox, chart._.maxValue, 1/viewAllChartSidesRatio));
 
   chart._.panViewChart.linesSvg = createSvgElem('svg', 'lines-svg');
   setAttr(chart._.panViewChart.linesSvg, "preserveAspectRatio", "none");
   setViewPort(chart._.panViewChart.linesSvg, {x: 0, y: 0, width: chart._.containerWidth, height: chart._.containerWidth * panViewChartSidesRatio});
-  setViewBox(chart._.panViewChart.linesSvg, {width: chart._.containerWidth, height: chart._.containerWidth});
+  setViewBox(chart._.panViewChart.linesSvg, {width: chart._.containerWidth, height: chart._.containerWidth + yBottomPadding});
 
   chart._.panViewChart.linesGroup = createSvgElem('g', 'lines-group');
   chart._.panViewChart.xAxiGroup = createSvgElem('g', 'x-axi-group');

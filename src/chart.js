@@ -24,25 +24,23 @@ function showLine(line, show) {
   show ? line.classList.remove('hide') : line.classList.add('hide');
 }
 
-function scaleGroup(linesGroup, newTotalData, maxValue, height) {
-  let newMax, 
-      deltaRatio,
+function scaleGroup(linesGroup, newMaxValue, prevMaxValue, height) {
+  let deltaRatio,
       Y_translate_size, Y_scale_coef,
       transform = '';
-  if (newTotalData.length === 0) {
+  if (!isFinite(newMaxValue)) {
     setAttr(linesGroup, 'transform',  `matrix(1 0 0 1 0 ${-height*2})`);
     return;
   }
-  newMax = Math.max.apply(null, newTotalData);
-  deltaRatio = newMax / maxValue;
+  deltaRatio = newMaxValue / prevMaxValue;
   Y_scale_coef = 1 / deltaRatio;
   Y_translate_size = height * deltaRatio - height;
   console.log(`deltaRatio: ${deltaRatio}, height: ${height}, Y_translate_size: ${Y_translate_size}, Y_scale_coef: ${Y_scale_coef}`);
   transform += `scale(1 ${Y_scale_coef})`;
   let matrix = [
-    1, 0, 0, Y_scale_coef, 0, (newMax !== maxValue?Y_translate_size*Y_scale_coef:0),
+    1, 0, 0, Y_scale_coef, 0, (newMaxValue !== prevMaxValue?Y_translate_size*Y_scale_coef:0),
   ];
-  if(newMax !== maxValue){
+  if(newMaxValue !== prevMaxValue){
     transform += ` translate(0, ${Y_translate_size})`
   }
   console.log('.... ', transform, matrix);
@@ -68,7 +66,7 @@ function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
 
 function render(_) {
   console.log('_ :', _);
-  let y_axi = addYaxi(_.panViewChart.svg, _.panViewChart.viewBox,  _.maxValue, 5);
+  let y_axi = addYaxi(_.panViewChart.svg, _.maxValue, _.panViewChart.viewBox, 5);
 
   Object.values(_.lines).forEach((line)=>{
     _.panViewChart.lines[line.name] = createLine(_.panViewChart.linesGroup, line, _.panViewChart);
@@ -78,7 +76,8 @@ function render(_) {
       line.checked = checked;
       showLine(_.panViewChart.lines[line.name], checked);
       let data = Object.values(_.lines).filter((l)=>l.checked).reduce((s, n)=> s.concat(n.data), []);
-      scaleGroup(_.panViewChart.linesGroup, data, _.maxValue, _.panViewChart.viewBox.height);
+      let newMaxValue = Math.max.apply(null, data);
+      scaleGroup(_.panViewChart.linesGroup, newMaxValue, _.maxValue, _.panViewChart.viewBox.height);
     });
   });
   let timer = null;
@@ -90,7 +89,8 @@ function render(_) {
       timer = setTimeout(()=> {
         timer = null;
         let data = getTotalDataInRange(x, width, _.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size, _.lines);
-        scaleGroup(_.panViewChart.linesGroup, data, _.maxValue, _.panViewChart.viewBox.height);
+        let newMaxValue = Math.max.apply(null, data);
+        scaleGroup(_.panViewChart.linesGroup, newMaxValue, _.maxValue, _.panViewChart.viewBox.height);
       }, 100)
 
     })
@@ -98,7 +98,8 @@ function render(_) {
       clearTimeout(timer);
       timer = null;
       let data = getTotalDataInRange(x, width, _.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size, _.lines);
-      scaleGroup(_.panViewChart.linesGroup, data, _.maxValue, _.panViewChart.viewBox.height);
+      let newMaxValue = Math.max.apply(null, data);
+      scaleGroup(_.panViewChart.linesGroup, newMaxValue, _.maxValue, _.panViewChart.viewBox.height);
       // console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
     });
   setViewBox(_.panViewChart.linesSvg, {x: _.viewAllChart.viewBox.width*0.5*_.panViewChart.x_step_coefficient, width: _.viewAllChart.viewBox.height*_.panViewChart.x_step_coefficient});

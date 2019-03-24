@@ -13,6 +13,7 @@ function formatDate(dateTimestamp) {
 
 function createXaxi(placement, xAxi, config, limit) {
   let {x_step_size, viewBox} = config,
+      textWidthOffset = 44/2,
       x = 0, y = viewBox.height;
   let x_map = [];
   let {start, amount} = mapViewBoxToDataIndex(0, viewBox.width, x_step_size);
@@ -24,7 +25,10 @@ function createXaxi(placement, xAxi, config, limit) {
     text.textContent = formatDate(xAxi.data[j]);
     if (j % showEvery === 0) showElement(text, true);
     placement.appendChild(text);
-    x_map.push(text);
+    x_map.push({
+      svg: text,
+      x: x
+    });
     x += x_step_size;
   }
   return {
@@ -32,18 +36,22 @@ function createXaxi(placement, xAxi, config, limit) {
     x_map,
     start,
     amount,
-    y: y,
     x: 0,
     width: viewBox.width,
     x_step_size,
     showEvery,
     update: function(x, width) {
       let {start, amount} = mapViewBoxToDataIndex(x, width, x_step_size);
-      console.log("createXaxi:update", `${this.start} -> ${start}, ${this.amount}->${amount}, ${this.x} -> ${x} = ${this.x - x}`);
-      setAttr(this.placement, 'transform',  `translate(${this.x - x} 0)`);
-      if(width > this.width){
-        for (let i = 0; i < this.x_map.length; i++) {
-          setAttr(x_map[i], 'dx',  this.width - width);
+      let ratio = this.width/width;
+      // console.log("createXaxi:update", `${this.start} -> ${start}, ${this.amount}->${amount}`);
+      setAttr(this.placement, 'transform',  `translate(${this.x - x*ratio} 0)`);
+      let showEvery = Math.ceil(amount/limit);
+      for (let i = 0; i < this.x_map.length; i++) {
+        setAttr(x_map[i].svg, 'dx',  x_map[i].x*ratio-x_map[i].x);
+        if (i % showEvery === 0 || i === this.x_map.length - 1) {
+          showElement(x_map[i].svg, true);
+        }else {
+          showElement(x_map[i].svg, false);
         }
       }
     }
@@ -152,7 +160,7 @@ function render(_) {
       let newMaxValue = Math.max.apply(null, data);
       y_axi.update(newMaxValue);
       scaleGroup(_.panViewChart.linesGroup, newMaxValue, _.maxValue, _.panViewChart.viewBox.height);
-      console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
+      // console.log('onDragEnd', x, width, x*_.panViewChart.x_step_coefficient, width*_.panViewChart.x_step_coefficient);
     });
   let defaultPanView = {
     x:  0,

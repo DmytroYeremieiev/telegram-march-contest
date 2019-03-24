@@ -41,8 +41,16 @@ svg path{
 #y-axi-group .y-axi-text {
   font-size: 18px;
 }
+
+#x-axi-group .x-axi-text.hide{
+  opacity: 0;
+  visibility: hidden;
+}
 #x-axi-group .x-axi-text{
+  opacity: 1;
+  visibility: visible;
   font-size: 15px;
+  transition: visibility 0.33s linear, opacity 0.33s linear;
 }
 @media screen and (max-width: 640px) {
   #y-axi-group .y-axi-text {

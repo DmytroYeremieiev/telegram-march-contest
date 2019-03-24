@@ -10,6 +10,18 @@ export function setViewPort(svg, viewPort) {
   return svg;
 }
 
+export function getMousePosition(evt, svg) {
+  let CTM = svg.getScreenCTM();
+  if (evt.touches) {
+    evt = evt.touches[0];
+  }
+  return {
+    x: (evt.clientX - CTM.e) / CTM.a,
+    y: (evt.clientY - CTM.f) / CTM.d
+  };
+}
+
+
 export function setViewBox(svg, viewBox) {
   let [x,y,width, height] = (svg.getAttributeNS(null, 'viewBox') || "0 0 0 0").split(' ');
   x = viewBox.x != null ? viewBox.x : x;

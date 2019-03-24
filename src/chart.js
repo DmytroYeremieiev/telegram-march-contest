@@ -2,7 +2,7 @@ import {add as addDraggableSelector} from "./draggableSelector.js"
 import {add as addCheckbox} from "./checkbox.js"
 import {add as addYaxi} from "./y-axis.js"
 
-import {pipe, createSvgElem, setViewBox, setViewPort, setAttr, setAttrs} from "./common.js"
+import {pipe, createSvgElem, setViewBox, setViewPort, setAttr, setAttrs, getMousePosition} from "./common.js"
 
 const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
 
@@ -20,7 +20,7 @@ function createXaxi(placement, xAxi, config, limit) {
   let x_map = [];
   let {start, amount} = mapViewBoxToDataIndex(0, viewBox.width, x_step_size);
   let showEvery = Math.ceil(amount/limit);
-  console.log("amount:", amount, "showEvery: ", showEvery);
+  // console.log("amount:", amount, "showEvery: ", showEvery);
   for (let j = 0; j < xAxi.data.length; j++) {
     let text = createSvgElem('text');
     setAttrs(text, [['x', x],['y', y], ['class','x-axi-text hide']]);
@@ -110,8 +110,18 @@ function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
     .reduce((s, n)=> s.concat(n), []);
 }
 
+
+function addHoverPopup(placement, viewBox, data, x_step_size) {
+  placement.addEventListener('mouseover', (evt)=>{
+    let position = getMousePosition(evt, placement);
+    let map = mapViewBoxToDataIndex(position, viewBox.viewBox);
+    console.log("position", position)
+  });
+}
+
 function render(_) {
   console.log('_ :', _);
+  addHoverPopup(_.panViewChart.linesSvg, _.panViewChart.viewBox, _.x);
   let y_axi = addYaxi(_.panViewChart.svg, _.maxValue, Object.assign({}, _.panViewChart.viewBox, {height: _.panViewChart.viewBox.height - yBottomPadding}), 5);
   let x_axi = createXaxi(_.panViewChart.xAxiGroup, _.x, _.panViewChart, 7);
   Object.values(_.lines).forEach((line)=>{

@@ -230,12 +230,11 @@ function createChart(id, styles, sides_ratio) {
   };
 }
 
-function create(placement, config, data){
+function create(placement, data){
   const chart = {}, 
         panViewChartSidesRatio = 1,
         viewAllChartSidesRatio = 1/6;
 
-  chart.config = config;
   chart._ = pipe(
     setContainerSize,
     prepareData

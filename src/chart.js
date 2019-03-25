@@ -118,18 +118,12 @@ function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
     .map((l)=>l.data.slice(start, start+amount))
     .reduce((s, n)=> s.concat(n), []);
 }
-// <g class="popup" transform="translate(100 0)">
-//   <line class="popup-line" x1="0" y1="0" x2="0" y2="300" class="y-axi-line" />
-//   <circle class="popup-circle" transform="translate(-5 100)" cx="5" cy="5" r="5"/>
-//   <circle class="popup-circle" transform="translate(-5 200)" cx="5" cy="5" r="5"/>
-//   <rect class="popup-rect" transform="translate(-50 1)" x="0" y="0" width="100" height="80" rx="15" ry="15" />
-//   <text class="popup-text" transform="translate(-40 20)" x="0" y="0">250</text>
-//   </g>
+
 function createInfoPopup(svg, viewBox, linesInfo) {
   let g = createSvgElem('g', null, null, ['popup']);
   setAttr(g, 'transform', `translate(${linesInfo[0].x} 0)`)
   let hLine = createSvgElem('line', null, null, ['popup']);
-  setAttrs(hLine, [['class', 'popup-line'], ['x1',0], ['y1',0], ['x2', 0], ['y2', viewBox.height]]);
+  setAttrs(hLine, [['class', 'popup-line'], ['x1',0], ['y1',0], ['x2', 0], ['y2', viewBox.height - 30]]);
   g.appendChild(hLine);
 
   let circles = [];
@@ -154,16 +148,19 @@ function createInfoPopup(svg, viewBox, linesInfo) {
 
   svg.appendChild(g);
   return {
-    update: function (linesInfo, viewBox) {
-      setAttr(g, 'transform', `translate(${linesInfo[0].x } 0)`);
+    update: function (linesInfo, matrixCTM = {d: 1}, transformMatrix = {d: 1, f: 0}) {
+      let gX = linesInfo[0].x * matrixCTM.a + matrixCTM.e;
+      setAttr(g, 'transform', `translate(${gX} 0)`);
       linesInfo.forEach((l, i) => {
-        let circle = circles[i];
+        let circle = circles[i],
+            cY = (l.y * transformMatrix.d + transformMatrix.f ) * matrixCTM.d;
         if (!circle) {
           circle = createCircle(l);
           g.appendChild(circle);
           circles.push(circle);
         }
-        setAttr(circle, 'transform', `translate(0 ${l.y})`);
+        console.log('matrixCTM, transformMatrix');
+        setAttr(circle, 'transform', `translate(0 ${cY})`);
       })
     }
   }
@@ -172,7 +169,7 @@ function createInfoPopup(svg, viewBox, linesInfo) {
 function addHoverPopup(config) {
   let {linesSvg, linesGroup, svg, x_step_size, lines} = config;
   let viewBox = linesSvg._viewBox;
-  let infoPopup = createInfoPopup(linesSvg, viewBox, [{x: viewBox.width/2, y: 0}]);
+  let infoPopup = createInfoPopup(svg, viewBox, [{x: viewBox.width/2, y: 0}]);
 
   svg.addEventListener('mousemove', (evt)=>{
     viewBox = linesSvg._viewBox ? linesSvg._viewBox : linesSvg.getBBox();
@@ -180,7 +177,7 @@ function addHoverPopup(config) {
     let {start} = mapViewBoxToDataIndex(x, viewBox.width, x_step_size);
     let linesInfo = Object.values(lines).map((l)=>l[start]);
     console.log(`mouse position: ${x}, dataIndex[${start}]`, linesInfo);
-    infoPopup.update(linesInfo, viewBox);
+    infoPopup.update(linesInfo, linesSvg.getCTM(), linesGroup.transform.baseVal[0] && linesGroup.transform.baseVal[0].matrix);
   });
 }
 

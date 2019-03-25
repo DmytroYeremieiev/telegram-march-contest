@@ -67,15 +67,15 @@ function createLine(placement, line, config) {
   for (let j = 0; j < line.data.length; j++) {
     const prefix = j === 0 ? 'M' : 'L';
     y = viewBox.height - line.data[j]*y_step_coefficient;
-    d += prefix + x +','+ y;
-    x += x_step_size;
+    d += ' ' + prefix + x +','+ y + ' ';
     pathInfo[j] = {
       x, y,
       path: path,
       name: line.name,
       color: line.color,
       value: line.data[j]
-    }
+    };
+    x += x_step_size;
   }
   setAttrs(path, [['d',d],['stroke',line.color],['fill','none']])
   placement.appendChild(path);
@@ -105,13 +105,14 @@ function mapViewBoxToDataIndex(x, width, x_step_size) {
   let start = x/x_step_size, 
       amount = width/x_step_size;
   return {
-    start: Math.floor(start),
-    amount: Math.ceil(amount)
+    start: Math.round(start),
+    amount: Math.round(amount)
   }
 }
 
 function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
   let {start, amount} = mapViewBoxToDataIndex(x*x_step_coefficient, width*x_step_coefficient, x_step_size);
+  // console.log("getTotalDataInRange", {start, amount});
   return Object.values(lines)
     .filter((l)=>l.checked)
     .map((l)=>l.data.slice(start, start+amount))
@@ -134,7 +135,7 @@ function createInfoPopup(svg, viewBox, linesInfo) {
   let circles = [];
   function createCircle(l){
     let circle = createSvgElem('circle', null, null, ['popup-circle']);
-    setAttrs(circle, [['stroke', l.color], ['transform', `translate(0 ${l.y})`], ['cx', 5], ['cy', 5], ['r', 5]]);
+    setAttrs(circle, [['stroke', l.color], ['transform', `translate(0 ${l.y})`], ['cx', 0], ['cy', 0], ['r', 5]]);
     return circle;
   }
   linesInfo.forEach((l)=>{
@@ -169,12 +170,14 @@ function createInfoPopup(svg, viewBox, linesInfo) {
 }
 
 function addHoverPopup(config) {
-  let {linesSvg, svg, viewBox, x_step_size, lines} = config;
-  let infoPopup = createInfoPopup(svg, viewBox, [{x: viewBox.width/2, y: 0}]);
+  let {linesSvg, linesGroup, svg, x_step_size, lines} = config;
+  let viewBox = linesSvg._viewBox;
+  let infoPopup = createInfoPopup(linesGroup, viewBox, [{x: viewBox.width/2, y: 0}]);
 
   svg.addEventListener('mousemove', (evt)=>{
-    let {x, y} = getMousePosition(evt, linesSvg);
-    let {start} = mapViewBoxToDataIndex(x, viewBox.viewBox, x_step_size);
+    viewBox = linesSvg._viewBox ? linesSvg._viewBox : linesSvg.getBBox();
+    let {x} = getMousePosition(evt, svg);
+    let {start} = mapViewBoxToDataIndex(+parseFloat(viewBox.x) + x, viewBox.width, x_step_size);
     let linesInfo = Object.values(lines).map((l)=>l[start]);
     console.log(`mouse position: ${x}, dataIndex[${start}]`, linesInfo);
     infoPopup.update(linesInfo);

@@ -10,7 +10,7 @@
   margin: 0 40px 40px;
 }
 
-#lines-svg g {
+#lines-svg #lines-group {
   transition: scale 0.4s linear, transform 0.4s linear, matrix 0.4s linear;
 }
 svg path{

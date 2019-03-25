@@ -21,14 +21,14 @@ export function getMousePosition(evt, svg) {
   };
 }
 
-
+//(294.9 * m3.d)  + m3.f
 export function setViewBox(svg, viewBox) {
   let [x,y,width, height] = (svg.getAttributeNS(null, 'viewBox') || "0 0 0 0").split(' ');
   x = viewBox.x != null ? viewBox.x : x;
   y = viewBox.y != null ? viewBox.y : y;
   width = viewBox.width != null ? viewBox.width : width;
   height = viewBox.height != null ? viewBox.height : height;
-
+  svg._viewBox = {x, y, width, height};
   setAttr(svg, 'viewBox', `${x} ${y} ${width} ${height}`);
   return svg;
 }

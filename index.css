@@ -82,7 +82,6 @@ svg path{
 }
 .popup .popup-circle{
   fill: white;
-  stroke: red;
   stroke-width: 2px;
 }
 .popup .popup-rect{

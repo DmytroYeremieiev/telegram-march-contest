@@ -63,14 +63,13 @@ function createLine(placement, line, config) {
       {y_step_coefficient, x_step_size, viewBox} = config,
       d = '',
       x = 0, y = null;
-  let pathInfo = {};
+  let pathInfo = {path: path, map: []};
   for (let j = 0; j < line.data.length; j++) {
     const prefix = j === 0 ? 'M' : 'L';
     y = viewBox.height - line.data[j]*y_step_coefficient;
     d += ' ' + prefix + x +','+ y + ' ';
-    pathInfo[j] = {
+    pathInfo.map[j] = {
       x, y,
-      path: path,
       name: line.name,
       color: line.color,
       value: line.data[j]
@@ -120,11 +119,11 @@ function getTotalDataInRange(x, width, x_step_coefficient, x_step_size, lines) {
 }
 
 function createInfoPopup(svg, viewBox, linesInfo) {
-  let g = createSvgElem('g', null, null, ['popup']);
-  setAttr(g, 'transform', `translate(${linesInfo[0].x} 0)`)
+  let popupG = createSvgElem('g', null, null, ['popup']);
+  setAttr(popupG, 'transform', `translate(${linesInfo[0].x} 0)`)
   let hLine = createSvgElem('line', null, null, ['popup']);
   setAttrs(hLine, [['class', 'popup-line'], ['x1',0], ['y1',0], ['x2', 0], ['y2', viewBox.height - 30]]);
-  g.appendChild(hLine);
+  popupG.appendChild(hLine);
 
   let circles = [];
   function createCircle(l){
@@ -132,36 +131,41 @@ function createInfoPopup(svg, viewBox, linesInfo) {
     setAttrs(circle, [['stroke', l.color], ['transform', `translate(0 ${l.y})`], ['cx', 0], ['cy', 0], ['r', 5]]);
     return circle;
   }
-  linesInfo.forEach((l)=>{
-    let circle = createCircle(l);
-    g.appendChild(circle);
-    circles.push(circle);
-  });
 
+  function addLineCaption(linesInfo){
+    let rectG = createSvgElem('g', null, null, ['popup-rect-g']);
+    setAttr(rectG, 'transform', 'translate(-50 80)')
+    let rect = createSvgElem('rect', null, null, ['popup-rect']);
+    setAttrs(rect, [['x', 0],['y', 0],['width', 100],['height', 80], ['rx', 15], ['ry', 15]]);
+    rectG.appendChild(rect);
 
-  let rect = createSvgElem('rect', null, null, ['popup-rect']);
-  let text = createSvgElem('popup-text', null, null, ['popup-rect']);
-  text.textContent = "arsarsars";
+    let text = createSvgElem('text', null, null, ['popup-title']);
+    text.textContent = "arsarsars";
+    linesInfo.forEach((l)=>{
+      let text = createSvgElem('text', null, null, ['popup-title']);
 
-  g.appendChild(rect);
-  g.appendChild(text);
+    });
 
-  svg.appendChild(g);
+    popupG.appendChild(rectG);
+  }
+
+  svg.appendChild(popupG);
   return {
     update: function (linesInfo, matrixCTM = {d: 1}, transformMatrix = {d: 1, f: 0}) {
       let gX = linesInfo[0].x * matrixCTM.a + matrixCTM.e;
-      setAttr(g, 'transform', `translate(${gX} 0)`);
+      setAttr(popupG, 'transform', `translate(${gX} 0)`);
       linesInfo.forEach((l, i) => {
         let circle = circles[i],
             cY = (l.y * transformMatrix.d + transformMatrix.f ) * matrixCTM.d;
         if (!circle) {
           circle = createCircle(l);
-          g.appendChild(circle);
+          popupG.appendChild(circle);
           circles.push(circle);
         }
         console.log('matrixCTM, transformMatrix');
         setAttr(circle, 'transform', `translate(0 ${cY})`);
-      })
+      });
+      addLineCaption(linesInfo);
     }
   }
 }
@@ -175,7 +179,7 @@ function addHoverPopup(config) {
     viewBox = linesSvg._viewBox ? linesSvg._viewBox : linesSvg.getBBox();
     let {x} = getMousePosition(evt, linesSvg);
     let {start} = mapViewBoxToDataIndex(x, viewBox.width, x_step_size);
-    let linesInfo = Object.values(lines).map((l)=>l[start]);
+    let linesInfo = Object.values(lines).map((l)=>l.map[start]);
     console.log(`mouse position: ${x}, dataIndex[${start}]`, linesInfo);
     infoPopup.update(linesInfo, linesSvg.getCTM(), linesGroup.transform.baseVal[0] && linesGroup.transform.baseVal[0].matrix);
   });

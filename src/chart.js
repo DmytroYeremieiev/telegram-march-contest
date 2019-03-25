@@ -276,6 +276,11 @@ function render(_) {
   };
   setViewBox(_.panViewChart.linesSvg, {x: defaultPanView.x, width: defaultPanView.width});
   x_axi.update(defaultPanView.x, defaultPanView.width);
+
+  let data = getTotalDataInRange(defaultPanView.x, defaultPanView.width / _.panViewChart.x_step_coefficient, _.viewAllChart.x_step_coefficient, _.viewAllChart.x_step_size, _.lines);
+  let newMaxValue = Math.max.apply(null, data);
+  y_axi.update(newMaxValue);
+  scaleGroup(_.panViewChart.linesGroup, newMaxValue, _.maxValue, _.panViewChart.viewBox.height);
 }
 function getProportions(x_steps, viewBox, maxValue, x_step_coefficient) {
   let y_step_coefficient, x_step_size;

@@ -186,6 +186,7 @@ function createInfoPopup(svg, viewBox, linesInfo) {
 
   svg.appendChild(popupG);
   return {
+    svg: popupG,
     update: function (linesInfo, matrixCTM = {d: 1}, transformMatrix = {d: 1, f: 0}) {
       let gX = linesInfo[0].x * matrixCTM.a + matrixCTM.e;
       setAttr(popupG, 'transform', `translate(${gX} 0)`);
@@ -209,6 +210,7 @@ function addHoverPopup(config) {
   let {linesSvg, linesGroup, svg, x_step_size, lines} = config;
   let viewBox = linesSvg._viewBox;
   let infoPopup = createInfoPopup(svg, viewBox, [{x: viewBox.width/2, y: 0}]);
+  showElement(infoPopup.svg, false);
 
   svg.addEventListener('mousemove', (evt)=>{
     viewBox = linesSvg._viewBox ? linesSvg._viewBox : linesSvg.getBBox();
@@ -217,6 +219,10 @@ function addHoverPopup(config) {
     let linesInfo = Object.values(lines).map((l)=>l.map[start]);
     console.log(`mouse position: ${x}, dataIndex[${start}]`, linesInfo);
     infoPopup.update(linesInfo, linesSvg.getCTM(), linesGroup.transform.baseVal[0] && linesGroup.transform.baseVal[0].matrix);
+    showElement(infoPopup.svg, true);
+  });
+  svg.addEventListener('mouseleave', (evt)=>{
+    showElement(infoPopup.svg, false);
   });
 }
 

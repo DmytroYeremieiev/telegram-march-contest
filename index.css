@@ -54,11 +54,11 @@ svg path{
   opacity: 0;
   visibility: hidden;
 }
-#x-axi-group .x-axi-text{
+#x-axi-group .x-axi-text, #x-axi-group .x-axi-text.show{
   opacity: 1;
   visibility: visible;
   font-size: 15px;
-  transition: visibility 0.33s linear, opacity 0.33s linear;
+  transition: visibility .5s linear, opacity .5s linear;
 }
 @media screen and (max-width: 640px) {
   #y-axi-group .y-axi-text {
@@ -71,8 +71,14 @@ svg path{
   stroke: #eee;
 }
 
-.popup {
-
+.popup, .popup.show {
+  opacity: 1;
+  visibility: visible;
+  transition: visibility .5s linear, opacity .5s linear;
+}
+.popup.hide {
+  opacity: 0;
+  visibility: hidden;
 }
 .popup .popup-circle{
   fill: white;

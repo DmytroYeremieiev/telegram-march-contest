@@ -58,7 +58,7 @@ function createXaxi(placement, xAxi, config, limit) {
   };
 }
 
-function createLine(placement, line, config) {
+function createLine(placement, line, config, xData) {
   let path = createSvgElem('path', line.name),
       {y_step_coefficient, x_step_size, viewBox} = config,
       d = '',
@@ -72,7 +72,8 @@ function createLine(placement, line, config) {
       x, y,
       name: line.name,
       color: line.color,
-      value: line.data[j]
+      value: line.data[j],
+      xData: xData[j]
     };
     x += x_step_size;
   }
@@ -124,8 +125,11 @@ function createInfoPopup(svg, viewBox, linesInfo) {
   let hLine = createSvgElem('line', null, null, ['popup']);
   setAttrs(hLine, [['class', 'popup-line'], ['x1',0], ['y1',0], ['x2', 0], ['y2', viewBox.height - 30]]);
   popupG.appendChild(hLine);
-
+  let rectG = null, rect = null, title = null;
   let circles = [];
+  let lineInfoBlocks = {};
+  let lineInfoBlockPadding = 35, textHeight = 10, yStepSize = 10;
+
   function createCircle(l){
     let circle = createSvgElem('circle', null, null, ['popup-circle']);
     setAttrs(circle, [['stroke', l.color], ['transform', `translate(0 ${l.y})`], ['cx', 0], ['cy', 0], ['r', 5]]);
@@ -133,20 +137,51 @@ function createInfoPopup(svg, viewBox, linesInfo) {
   }
 
   function addLineCaption(linesInfo){
-    let rectG = createSvgElem('g', null, null, ['popup-rect-g']);
-    setAttr(rectG, 'transform', 'translate(-50 80)')
-    let rect = createSvgElem('rect', null, null, ['popup-rect']);
-    setAttrs(rect, [['x', 0],['y', 0],['width', 100],['height', 80], ['rx', 15], ['ry', 15]]);
-    rectG.appendChild(rect);
+    let titleText = formatDate(linesInfo[0].xData);
+    let rectHeight = lineInfoBlockPadding + (linesInfo.length * (textHeight + yStepSize)) + yStepSize;
+    let linesInfoY = lineInfoBlockPadding + yStepSize;
 
-    let text = createSvgElem('text', null, null, ['popup-title']);
-    text.textContent = "arsarsars";
-    linesInfo.forEach((l)=>{
-      let text = createSvgElem('text', null, null, ['popup-title']);
+    if (!rectG){
+      rectG = createSvgElem('g', null, null, ['popup-rect-g']);
+      popupG.appendChild(rectG);
+    }
+    setAttr(rectG, 'transform', 'translate(-50 80)');
+    if(!rect){
+      rect = createSvgElem('rect', null, null, ['popup-rect']);
+      rectG.appendChild(rect);
+    }
+    setAttrs(rect, [['x', 0],['y', 0],['width', 100],['height', rectHeight], ['rx', 15], ['ry', 15]]);
+    if(!title){
+      title = createSvgElem('text', null, null, ['popup-title']);
+      setAttrs(title, [['x', 25], ['y', 20]]);
+      rectG.appendChild(title);
+    }
+    title.textContent = titleText;
 
+    linesInfo.forEach((l, i)=>{
+      lineInfoBlocks[i] = lineInfoBlocks[i] || {};
+      let {subTitle, text} = lineInfoBlocks[i];
+      if(!subTitle){
+        subTitle = createSvgElem('text', null, null, ['popup-sub-title']);
+        setAttrs(subTitle, [['x', 10], ['y', linesInfoY], ['fill', l.color]]);
+        rectG.appendChild(subTitle);
+        lineInfoBlocks[i].subTitle = subTitle;
+      }
+      subTitle.textContent = l.name+":";
+
+      if(!text){
+        text = createSvgElem('text', null, null, ['popup-text']);
+        setAttrs(text, [['x', 40], ['y', linesInfoY]]);
+        rectG.appendChild(text);
+        lineInfoBlocks[i].text = text;
+      }
+      text.textContent = l.value;
+      linesInfoY += yStepSize + textHeight;
+
+      rectG.appendChild(subTitle);
+      rectG.appendChild(text);
     });
 
-    popupG.appendChild(rectG);
   }
 
   svg.appendChild(popupG);
@@ -191,8 +226,8 @@ function render(_) {
   let y_axi = addYaxi(_.panViewChart.svg, _.maxValue, Object.assign({}, _.panViewChart.viewBox, {height: _.panViewChart.viewBox.height - yBottomPadding}), 5);
   let x_axi = createXaxi(_.panViewChart.xAxiGroup, _.x, _.panViewChart, 7);
   Object.values(_.lines).forEach((line)=>{
-    _.panViewChart.lines[line.name] = createLine(_.panViewChart.linesGroup, line, _.panViewChart);
-    _.viewAllChart.lines[line.name] = createLine(_.viewAllChart.group, line, _.viewAllChart);
+    _.panViewChart.lines[line.name] = createLine(_.panViewChart.linesGroup, line, _.panViewChart, _.x.data);
+    _.viewAllChart.lines[line.name] = createLine(_.viewAllChart.group, line, _.viewAllChart, _.x.data);
     line.checked = true;
     addCheckbox(_.placement, line.color, line.name, line.checked, (checked)=>{
       line.checked = checked;

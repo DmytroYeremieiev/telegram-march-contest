@@ -19,5 +19,5 @@ Those who aim for the first prize will also have to support the zoom in / zoom o
 [Full demo](https://dmytroyeremieiev.github.io/telegram-march-contest/)
 
 
-### Preview: 
+#### Preview: 
 ![Telegram march contest](https://user-images.githubusercontent.com/19588441/138666870-2109a1aa-dfa3-4d9b-bfc4-aac910e43b97.gif)

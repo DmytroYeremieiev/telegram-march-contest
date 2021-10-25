@@ -7,9 +7,9 @@ Prize budget: at least $150,000 to be distributed among the winners.
 
 Those who aim for the first prize will also have to support the zoom in / zoom out feature and pie charts. Zooming in allows to expand each data point into another graph with a more detailed X-axis. For example, each point on a 365-day daily graph can be zoomed into a 24-hour graph on a 168-hour timeline, as shown on one of the video demonstrations below.
 
-Datasets for each graph: ![/chart_data.json](https://github.com/DmytroYeremieiev/telegram-march-contest/blob/master/chart_data.json)
+**Datasets for each graph**: [./chart_data.json](https://github.com/DmytroYeremieiev/telegram-march-contest/blob/master/chart_data.json)
 
-![Full demo](https://dmytroyeremieiev.github.io/telegram-march-contest/)
+[Full demo](https://dmytroyeremieiev.github.io/telegram-march-contest/)
 
 
 ### Preview: 

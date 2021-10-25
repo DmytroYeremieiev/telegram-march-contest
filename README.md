@@ -5,6 +5,13 @@ Prize budget: at least $150,000 to be distributed among the winners.
 
 **Goal**: Build 5 graphs based on the input data we provide. In addition to line charts developed in Stage 1, we are inviting developers to support 3 new chart types: line charts with 2 Y axes, bar charts and percentage stacked area charts.
 
+**Winners selection criterias**: 
+- **Developers aren't allowed to use third-party frameworks or libraries. Solutions must be built with only the native browser's API.**. 
+- UX should be as slick and fast as possible on both web and mobile platforms.
+- The final source code bundle size, the smaller is better. 
+- Provided design specs must be followed.
+
+
 Those who aim for the first prize will also have to support the zoom in / zoom out feature and pie charts. Zooming in allows to expand each data point into another graph with a more detailed X-axis. For example, each point on a 365-day daily graph can be zoomed into a 24-hour graph on a 168-hour timeline, as shown on one of the video demonstrations below.
 
 **Datasets for each graph**: [./chart_data.json](https://github.com/DmytroYeremieiev/telegram-march-contest/blob/master/chart_data.json)
